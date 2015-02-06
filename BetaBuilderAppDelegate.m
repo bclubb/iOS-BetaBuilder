@@ -35,8 +35,7 @@
 #import "NSFileManager+DirectoryLocations.h"
 
 @interface BetaBuilderAppDelegate ()
-
-@property (nonatomic) BOOL runningInCommandLineSession;
+@property (nonatomic, assign) BOOL runningInCommandLineSession;
 @property (nonatomic, strong) NSDictionary *indexTemplateAlertPaths;
 
 @end
@@ -85,7 +84,7 @@
                 [fileManager copyItemAtPath:templatePathInBundle toPath:templatePath error:nil];
         } else {
             if ([fileManager contentsEqualAtPath:templatePathInBundle andPath:templatePath]) {
-                NSLog(@"Index Template Already Exists And They Are the Same - Not Copying From Bundle");
+//                NSLog(@"Index Template Already Exists And They Are the Same - Not Copying From Bundle");
             } else {
                 NSLog(@"Index Template Exists But Has Been Modified");
 
@@ -162,7 +161,18 @@
         [self.builderController generateFilesWithWebserverAddress:webserverAddress andOutputDirectory:outputPath];
         
         [NSApp performSelector:@selector(terminate:) withObject:nil afterDelay:0.0];
-
+        
+        processedArgs = YES;
+    }
+    
+    if (ipaPath && webserverAddress==nil && outputPath==nil) {
+        if (templateFile) {
+            self.builderController.templateFile = templateFile;
+        }
+        self.builderController.saveToDefaultFolder = YES;
+        [self.builderController setupFromIPAFile:ipaPath];
+        
+        [NSApp performSelector:@selector(terminate:) withObject:nil afterDelay:0.0];
         processedArgs = YES;
     }
 
@@ -193,12 +203,6 @@
 
 - (IBAction)showArchiveHelpPanel:(id)sender {
 	[self.archiveIPAHelpPanel setIsVisible:YES];
-}
-
-- (BOOL)application:(NSApplication *)theApplication openFile:(NSString *)filename {
-	[self.builderController setupFromIPAFile:filename];
-	
-	return YES;
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {

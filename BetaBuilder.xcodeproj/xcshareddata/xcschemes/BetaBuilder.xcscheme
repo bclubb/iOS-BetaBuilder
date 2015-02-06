@@ -57,6 +57,12 @@
             ReferencedContainer = "container:BetaBuilder.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "-ipaPath=/Users/xcodeserver/Desktop/_ota_source/PhotoCleaner-1.0-102.ipa"
+            isEnabled = "YES">
+         </CommandLineArgument>
+      </CommandLineArguments>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>

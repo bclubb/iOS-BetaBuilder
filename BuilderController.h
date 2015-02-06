@@ -31,6 +31,13 @@
 
 #import <Cocoa/Cocoa.h>
 
+@interface NSString (MyAdditions)
+- (NSString *)md5;
+@end
+
+@interface NSData (MyAdditions)
+- (NSString*)md5;
+@end
 
 @interface BuilderController : NSObject <NSFileManagerDelegate>
 
@@ -44,11 +51,18 @@
 @property (nonatomic) IBOutlet NSButton *generateFilesButton;
 @property (nonatomic) IBOutlet NSButton *openInFinderButton;
 @property (nonatomic) IBOutlet NSProgressIndicator *progressIndicator;
+
 @property (nonatomic, copy) NSString *mobileProvisionFilePath;
 @property (nonatomic, copy) NSString *appIconFilePath;
 @property (nonatomic, copy) NSString *templateFile;
 @property (nonatomic, copy) NSURL *destinationPath;
 @property (nonatomic, copy) NSString *previousDestinationPathAsString;
+
+@property (nonatomic, assign) BOOL saveToDefaultFolder;
+@property (nonatomic, strong) NSString *folderName;
+@property (nonatomic, strong) NSString *ipaFilename;
+@property (nonatomic, strong) NSString *manifest;
+@property (nonatomic, strong) NSDictionary *bundlePlistFile;
 
 - (IBAction)specifyIPAFile:(id)sender;
 - (IBAction)generateFiles:(id)sender;

@@ -67,7 +67,7 @@
 		5AFE7582173CA520002BAD1E /* icons.iconset */ = {isa = PBXFileReference; lastKnownFileType = folder.iconset; path = icons.iconset; sourceTree = "<group>"; };
 		5AFE7586173CA568002BAD1E /* icons.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = icons.icns; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* BetaBuilder-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "BetaBuilder-Info.plist"; sourceTree = "<group>"; };
-		8D1107320486CEB800E47090 /* BetaBuilder for iOS Apps.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "BetaBuilder for iOS Apps.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		8D1107320486CEB800E47090 /* BetaBuilder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BetaBuilder.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -120,7 +120,7 @@
 		19C28FACFE9D520D11CA2CBB /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8D1107320486CEB800E47090 /* BetaBuilder for iOS Apps.app */,
+				8D1107320486CEB800E47090 /* BetaBuilder.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -225,7 +225,7 @@
 			name = BetaBuilder;
 			productInstallPath = "$(HOME)/Applications";
 			productName = BetaBuilder;
-			productReference = 8D1107320486CEB800E47090 /* BetaBuilder for iOS Apps.app */;
+			productReference = 8D1107320486CEB800E47090 /* BetaBuilder.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -331,7 +331,7 @@
 				INFOPLIST_FILE = "BetaBuilder-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
-				PRODUCT_NAME = "BetaBuilder for iOS Apps";
+				PRODUCT_NAME = BetaBuilder;
 				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
@@ -351,7 +351,7 @@
 				INFOPLIST_FILE = "BetaBuilder-Info.plist";
 				INSTALL_PATH = "$(HOME)/Applications";
 				MACOSX_DEPLOYMENT_TARGET = 10.6;
-				PRODUCT_NAME = "BetaBuilder for iOS Apps";
+				PRODUCT_NAME = BetaBuilder;
 				PROVISIONING_PROFILE = "";
 			};
 			name = Release;

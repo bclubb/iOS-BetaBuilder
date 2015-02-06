@@ -30,9 +30,41 @@
  */
 
 #import "NSFileManager+DirectoryLocations.h"
-
 #import "BuilderController.h"
 #import "ZipArchive.h"
+
+#import <CommonCrypto/CommonDigest.h> // Need to import for CC_MD5 access
+
+@implementation NSString (MyAdditions)
+- (NSString *)md5
+{
+    const char *cStr = [self UTF8String];
+    unsigned char result[CC_MD5_DIGEST_LENGTH];
+    CC_MD5( cStr, strlen(cStr), result ); // This is the md5 call
+    return [NSString stringWithFormat:
+            @"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+            result[0], result[1], result[2], result[3],
+            result[4], result[5], result[6], result[7],
+            result[8], result[9], result[10], result[11],
+            result[12], result[13], result[14], result[15]
+            ];
+}
+@end
+
+@implementation NSData (MyAdditions)
+- (NSString*)md5
+{
+    unsigned char result[CC_MD5_DIGEST_LENGTH];
+    CC_MD5( self.bytes, self.length, result ); // This is the md5 call
+    return [NSString stringWithFormat:
+            @"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+            result[0], result[1], result[2], result[3],
+            result[4], result[5], result[6], result[7],
+            result[8], result[9], result[10], result[11],
+            result[12], result[13], result[14], result[15]
+            ];  
+}
+@end
 
 @implementation BuilderController
 
@@ -56,8 +88,10 @@
 }
 
 - (void)setupFromIPAFile:(NSString *)ipaFilename {
+    self.ipaFilename = ipaFilename;
+    self.manifest = [[ipaFilename.lastPathComponent stringByDeletingPathExtension]stringByAppendingPathExtension:@"plist"];
 	[self.archiveIPAFilenameField setStringValue:ipaFilename];
-
+    
 	//Attempt to pull values
 	NSError *fileCopyError;
 	NSError *fileDeleteError;
@@ -68,7 +102,7 @@
 	BOOL copiedIPAFile = [fileManager copyItemAtURL:ipaSourceURL toURL:ipaDestinationURL error:&fileCopyError];
 
     if (!copiedIPAFile) {
-		NSLog(@"Error Copying IPA File: %@", fileCopyError);
+		NSLog(@"Error Loading IPA File: %@", fileCopyError);
         NSAlert *theAlert = [NSAlert alertWithError:fileCopyError];
         NSInteger button = [theAlert runModal];
         if (button != NSAlertFirstButtonReturn) {
@@ -89,26 +123,26 @@
 		NSArray *payloadContents = [fileManager contentsOfDirectoryAtPath:appDirectoryPath error:nil];
 		if ([payloadContents count] > 0) {
 			NSString *plistPath = [[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"Info.plist"];
-			NSDictionary *bundlePlistFile = [NSDictionary dictionaryWithContentsOfFile:[appDirectoryPath stringByAppendingPathComponent:plistPath]];
+			self.bundlePlistFile = [NSDictionary dictionaryWithContentsOfFile:[appDirectoryPath stringByAppendingPathComponent:plistPath]];
 			
-			if (bundlePlistFile) {
-                if ([bundlePlistFile valueForKey:@"CFBundleShortVersionString"])   
-                    [self.bundleVersionField setStringValue:[NSString stringWithFormat:@"%@ (%@)", [bundlePlistFile valueForKey:@"CFBundleShortVersionString"], [bundlePlistFile valueForKey:@"CFBundleVersion"]]];
+			if (self.bundlePlistFile) {
+                if ([self.bundlePlistFile valueForKey:@"CFBundleShortVersionString"])
+                    [self.bundleVersionField setStringValue:[NSString stringWithFormat:@"%@ (%@)", [self.bundlePlistFile valueForKey:@"CFBundleShortVersionString"], [self.bundlePlistFile valueForKey:@"CFBundleVersion"]]];
 				else
-                    [self.bundleVersionField setStringValue:[bundlePlistFile valueForKey:@"CFBundleVersion"]];
+                    [self.bundleVersionField setStringValue:[self.bundlePlistFile valueForKey:@"CFBundleVersion"]];
                 
-                [self.bundleIdentifierField setStringValue:[bundlePlistFile valueForKey:@"CFBundleIdentifier"]];
+                [self.bundleIdentifierField setStringValue:[self.bundlePlistFile valueForKey:@"CFBundleIdentifier"]];
 				
-                if ([bundlePlistFile valueForKey:@"CFBundleDisplayName"])
-                    [self.bundleNameField setStringValue:[bundlePlistFile valueForKey:@"CFBundleDisplayName"]];
+                if ([self.bundlePlistFile valueForKey:@"CFBundleDisplayName"])
+                    [self.bundleNameField setStringValue:[self.bundlePlistFile valueForKey:@"CFBundleDisplayName"]];
                 else
                     [self.bundleNameField setStringValue:@""];
                 
                 [self.webserverDirectoryField setStringValue:@""];
-                [self populateFieldsFromHistoryForBundleID:[bundlePlistFile valueForKey:@"CFBundleIdentifier"]];
+                [self populateFieldsFromHistoryForBundleID:[self.bundlePlistFile valueForKey:@"CFBundleIdentifier"]];
 
-                if ([bundlePlistFile valueForKey:@"MinimumOSVersion"]) {
-                    CGFloat minimumOSVerson = [[bundlePlistFile valueForKey:@"MinimumOSVersion"] floatValue];
+                if ([self.bundlePlistFile valueForKey:@"MinimumOSVersion"]) {
+                    CGFloat minimumOSVerson = [[self.bundlePlistFile valueForKey:@"MinimumOSVersion"] floatValue];
 
                     if (minimumOSVerson < 4.0) {
                         [self.includeZipFileButton setState:NSOnState];
@@ -130,6 +164,13 @@
 	}
 	
 	[self.generateFilesButton setEnabled:YES];
+    
+    if (self.saveToDefaultFolder) {
+        NSString *bundleId = [self.bundlePlistFile valueForKey:@"CFBundleIdentifier"];
+        self.folderName = [[NSString stringWithFormat:@"folder_of_%@", bundleId] md5];
+        [self generateFilesWithWebserverAddress:[@"https://ios.ilegendsoft.com/ipas/" stringByAppendingString:self.folderName]
+                             andOutputDirectory:[@"/Library/Server/Web/Data/Sites/Default/ipas/" stringByAppendingString:self.folderName]];
+    }
 }
 
 - (void)populateFieldsFromHistoryForBundleID:(NSString *)bundleID {
@@ -219,7 +260,8 @@
 	NSString *htmlTemplateString = [NSString stringWithContentsOfFile:templatePath encoding:NSUTF8StringEncoding error:nil];
 	htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_NAME]" withString:[self.bundleNameField stringValue]];
     htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_VERSION]" withString:[self.bundleVersionField stringValue]];
-	htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_PLIST]" withString:[NSString stringWithFormat:@"%@/%@", trimmedURLString, @"manifest.plist"]];
+	htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_PLIST]"
+                                                                       withString:[NSString stringWithFormat:@"%@/%@", trimmedURLString, self.manifest]];
 	
     //add formatted date
     NSDateFormatter *shortDateFormatter = [[NSDateFormatter alloc] init];
@@ -272,24 +314,44 @@
     } else {
         NSURL *saveDirectoryURL = [NSURL fileURLWithPath:outputPath];
         [self saveFilesToOutputDirectory:saveDirectoryURL forManifestDictionary:outerManifestDictionary withTemplateHTML:htmlTemplateString];
+        if (self.saveToDefaultFolder) {
+            NSError *error = nil;
+            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1/ipas/ipa_uploaded.php"]];
+            NSDictionary *dict = @{
+                                   @"bundleid" : [self.bundlePlistFile valueForKey:@"CFBundleIdentifier"],
+                                   @"folder" : self.folderName,
+                                   @"displayname" : [self.bundlePlistFile valueForKey:@"CFBundleDisplayName"],
+                                   @"appversion" :  [self.bundlePlistFile valueForKey:@"CFBundleShortVersionString"],
+                                   @"appbuild" : [self.bundlePlistFile valueForKey:@"CFBundleVersion"],
+                                   @"ipafile" : self.ipaFilename.lastPathComponent,
+                                   @"manifest" : self.manifest
+                                   };
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dict options:kNilOptions error:nil];
+            request.HTTPBody = jsonData;
+            request.HTTPMethod = @"POST";
+            NSData *resultData = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:&error];
+            NSLog(@"IPAINSTALLED result %@ error %@", [[NSString alloc]initWithData:resultData encoding:NSUTF8StringEncoding],error);
+        }
     }
 }
 
 - (BOOL)saveFilesToOutputDirectory:(NSURL *)saveDirectoryURL forManifestDictionary:(NSDictionary *)outerManifestDictionary withTemplateHTML:(NSString *)htmlTemplateString {
     BOOL savedSuccessfully = NO;
-
+    
     [self.progressIndicator startAnimation:nil];
     
     NSFileManager *fileManager = [NSFileManager defaultManager];
+    [fileManager createDirectoryAtURL:saveDirectoryURL withIntermediateDirectories:YES attributes:nil error:nil];
+
     fileManager.delegate = self;
-    
+
     //Copy IPA
     NSError *fileCopyError;
     NSURL *ipaSourceURL = [NSURL fileURLWithPath:[self.archiveIPAFilenameField stringValue]];
     NSURL *ipaDestinationURL = [saveDirectoryURL URLByAppendingPathComponent:[[self.archiveIPAFilenameField stringValue] lastPathComponent]];
     BOOL copiedIPAFile = [fileManager copyItemAtURL:ipaSourceURL toURL:ipaDestinationURL error:&fileCopyError];
     if (!copiedIPAFile) {
-        NSLog(@"Error Copying IPA File: %@", fileCopyError);
+        NSLog(@"Error Saving IPA File: %@", fileCopyError);
         NSAlert *theAlert = [NSAlert alertWithError:fileCopyError];
         NSInteger button = [theAlert runModal];
         if (button != NSAlertFirstButtonReturn) {
@@ -298,6 +360,7 @@
         
         return NO;
     }
+    
     
     //Copy README
     if ([self.includeZipFileButton state] == NSOnState) {
@@ -333,10 +396,12 @@
     
     //Write Files
     if ([self.overwriteFilesButton state] == NSOnState)
-        [fileManager removeItemAtURL:[saveDirectoryURL URLByAppendingPathComponent:@"manifest.plist"] error:nil];
+        [fileManager removeItemAtURL:[saveDirectoryURL URLByAppendingPathComponent:self.manifest] error:nil];
     
     NSError *fileWriteError;
-    [outerManifestDictionary writeToURL:[saveDirectoryURL URLByAppendingPathComponent:@"manifest.plist"] atomically:YES];
+    NSURL *manifestUrl = [saveDirectoryURL URLByAppendingPathComponent:self.manifest];
+    [outerManifestDictionary writeToURL:manifestUrl atomically:YES];
+    NSLog(@"Manifest file saved to %@", manifestUrl);
     BOOL wroteHTMLFileSuccessfully = [htmlTemplateString writeToURL:[saveDirectoryURL URLByAppendingPathComponent:@"index.html"] atomically:YES encoding:NSUTF8StringEncoding error:&fileWriteError];
     
     if (!wroteHTMLFileSuccessfully) {
