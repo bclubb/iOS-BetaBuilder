@@ -109,17 +109,18 @@
             //user hit the rightmost button
         }
 	} else {
-		//Remove Existing Trash in Temp Directory
-		[fileManager removeItemAtPath:[NSTemporaryDirectory() stringByAppendingPathComponent:@"extracted_app"] error:nil];
+		//Remove Existing to Trash in Temp Directory
+        NSString *uudiStr = [[NSUUID UUID]UUIDString];
+		[fileManager removeItemAtPath:[NSTemporaryDirectory() stringByAppendingPathComponent:uudiStr] error:nil];
 		
 		ZipArchive *za = [[ZipArchive alloc] init];
 		if ([za UnzipOpenFile:[ipaDestinationURL path]]) {
-			BOOL ret = [za UnzipFileTo:[NSTemporaryDirectory() stringByAppendingPathComponent:@"extracted_app"] overWrite:YES];
+			BOOL ret = [za UnzipFileTo:[NSTemporaryDirectory() stringByAppendingPathComponent:uudiStr] overWrite:YES];
 			if (NO == ret){} [za UnzipCloseFile];
 		}
 		
 		//read the Info.plist file
-		NSString *appDirectoryPath = [[NSTemporaryDirectory() stringByAppendingPathComponent:@"extracted_app"] stringByAppendingPathComponent:@"Payload"];
+		NSString *appDirectoryPath = [[NSTemporaryDirectory() stringByAppendingPathComponent:uudiStr] stringByAppendingPathComponent:@"Payload"];
 		NSArray *payloadContents = [fileManager contentsOfDirectoryAtPath:appDirectoryPath error:nil];
 		if ([payloadContents count] > 0) {
 			NSString *plistPath = [[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"Info.plist"];
