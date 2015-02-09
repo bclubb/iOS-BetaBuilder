@@ -6,7 +6,7 @@
 //  Copyright 2010 Hunter Hillegas. All rights reserved.
 //
 
-/* 
+/*
  iOS BetaBuilder - a tool for simpler iOS betas
  Version 1.6
  
@@ -62,7 +62,7 @@
             result[4], result[5], result[6], result[7],
             result[8], result[9], result[10], result[11],
             result[12], result[13], result[14], result[15]
-            ];  
+            ];
 }
 @end
 
@@ -71,101 +71,88 @@
 - (IBAction)specifyIPAFile:(id)sender {
     NSArray *allowedFileTypes = [NSArray arrayWithObjects:@"ipa", @"IPA", nil]; //only allow IPAs
     
-	NSOpenPanel *openDlg = [NSOpenPanel openPanel];
-	[openDlg setCanChooseFiles:YES];
-	[openDlg setCanChooseDirectories:NO];
-	[openDlg setAllowsMultipleSelection:NO];
+    NSOpenPanel *openDlg = [NSOpenPanel openPanel];
+    [openDlg setCanChooseFiles:YES];
+    [openDlg setCanChooseDirectories:NO];
+    [openDlg setAllowsMultipleSelection:NO];
     [openDlg setAllowedFileTypes:allowedFileTypes];
-
+    
     if ([openDlg runModal] == NSOKButton) {
         NSArray *files = [openDlg URLs];
         
-		for (int i = 0; i < [files count]; i++ ) {
+        for (int i = 0; i < [files count]; i++ ) {
             NSURL *fileURL = [files objectAtIndex:i];
-			[self setupFromIPAFile:[fileURL path]];
-		}
-	}
+            [self setupFromIPAFile:[fileURL path]];
+        }
+    }
 }
 
 - (void)setupFromIPAFile:(NSString *)ipaFilename {
     self.ipaFilename = ipaFilename;
     self.manifest = [[ipaFilename.lastPathComponent stringByDeletingPathExtension]stringByAppendingPathExtension:@"plist"];
-	[self.archiveIPAFilenameField setStringValue:ipaFilename];
+    [self.archiveIPAFilenameField setStringValue:ipaFilename];
     
-	//Attempt to pull values
-	NSError *fileCopyError;
-	NSError *fileDeleteError;
-	NSFileManager *fileManager = [NSFileManager defaultManager];
-	NSURL *ipaSourceURL = [NSURL fileURLWithPath:[self.archiveIPAFilenameField stringValue]];
-	NSURL *ipaDestinationURL = [NSURL fileURLWithPath:[NSString stringWithFormat:@"%@%@", NSTemporaryDirectory(), [[self.archiveIPAFilenameField stringValue] lastPathComponent]]];
-	[fileManager removeItemAtURL:ipaDestinationURL error:&fileDeleteError];
-	BOOL copiedIPAFile = [fileManager copyItemAtURL:ipaSourceURL toURL:ipaDestinationURL error:&fileCopyError];
-
-    if (!copiedIPAFile) {
-		NSLog(@"Error Loading IPA File: %@", fileCopyError);
-        NSAlert *theAlert = [NSAlert alertWithError:fileCopyError];
-        NSInteger button = [theAlert runModal];
-        if (button != NSAlertFirstButtonReturn) {
-            //user hit the rightmost button
-        }
-	} else {
-		//Remove Existing to Trash in Temp Directory
-        NSString *uudiStr = [[NSUUID UUID]UUIDString];
-        NSString *tempFolder = [NSTemporaryDirectory() stringByAppendingPathComponent:uudiStr];
-		[fileManager removeItemAtPath:tempFolder error:nil];
-        NSLog(@"Temp folder is %@", tempFolder);
-		ZipArchive *za = [[ZipArchive alloc] init];
-		if ([za UnzipOpenFile:[ipaDestinationURL path]]) {
-			BOOL ret = [za UnzipFileTo:tempFolder overWrite:YES];
-			if (NO == ret){} [za UnzipCloseFile];
-		}
-		
-		//read the Info.plist file
-		NSString *appDirectoryPath = [tempFolder stringByAppendingPathComponent:@"Payload"];
-		NSArray *payloadContents = [fileManager contentsOfDirectoryAtPath:appDirectoryPath error:nil];
-		if ([payloadContents count] > 0) {
-			NSString *plistPath = [[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"Info.plist"];
-			self.bundlePlistFile = [NSDictionary dictionaryWithContentsOfFile:[appDirectoryPath stringByAppendingPathComponent:plistPath]];
-			
-			if (self.bundlePlistFile) {
-                if ([self.bundlePlistFile valueForKey:@"CFBundleShortVersionString"])
-                    [self.bundleVersionField setStringValue:[NSString stringWithFormat:@"%@ (%@)", [self.bundlePlistFile valueForKey:@"CFBundleShortVersionString"], [self.bundlePlistFile valueForKey:@"CFBundleVersion"]]];
-				else
-                    [self.bundleVersionField setStringValue:[self.bundlePlistFile valueForKey:@"CFBundleVersion"]];
-                
-                [self.bundleIdentifierField setStringValue:[self.bundlePlistFile valueForKey:@"CFBundleIdentifier"]];
-				
-                if ([self.bundlePlistFile valueForKey:@"CFBundleDisplayName"])
-                    [self.bundleNameField setStringValue:[self.bundlePlistFile valueForKey:@"CFBundleDisplayName"]];
-                else
-                    [self.bundleNameField setStringValue:@""];
-                
-                [self.webserverDirectoryField setStringValue:@""];
-                [self populateFieldsFromHistoryForBundleID:[self.bundlePlistFile valueForKey:@"CFBundleIdentifier"]];
-
-                if ([self.bundlePlistFile valueForKey:@"MinimumOSVersion"]) {
-                    CGFloat minimumOSVerson = [[self.bundlePlistFile valueForKey:@"MinimumOSVersion"] floatValue];
-
-                    if (minimumOSVerson < 4.0) {
-                        [self.includeZipFileButton setState:NSOnState];
-                    } else {
-                        [self.includeZipFileButton setState:NSOffState];
-                    }
-                }
-			}
-			
-			//set mobile provision file
-			self.mobileProvisionFilePath = [appDirectoryPath stringByAppendingPathComponent:[[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"embedded.mobileprovision"]];
+    
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    NSURL *ipaSourceURL = [NSURL fileURLWithPath:[self.archiveIPAFilenameField stringValue]];
+    
+    
+    NSString *uudiStr = [[NSUUID UUID]UUIDString];
+    NSString *tempFolder = [NSTemporaryDirectory() stringByAppendingPathComponent:uudiStr];
+    [fileManager removeItemAtPath:tempFolder error:nil];
+    NSLog(@"Temp folder is %@", tempFolder);
+    ZipArchive *za = [[ZipArchive alloc] init];
+    if ([za UnzipOpenFile:[ipaSourceURL path]]) {
+        BOOL ret = [za UnzipFileTo:tempFolder overWrite:YES];
+        if (NO == ret){} [za UnzipCloseFile];
+    }
+    
+    //read the Info.plist file
+    NSString *appDirectoryPath = [tempFolder stringByAppendingPathComponent:@"Payload"];
+    NSArray *payloadContents = [fileManager contentsOfDirectoryAtPath:appDirectoryPath error:nil];
+    if ([payloadContents count] > 0) {
+        NSString *plistPath = [[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"Info.plist"];
+        self.bundlePlistFile = [NSDictionary dictionaryWithContentsOfFile:[appDirectoryPath stringByAppendingPathComponent:plistPath]];
+        
+        if (self.bundlePlistFile) {
+            if ([self.bundlePlistFile valueForKey:@"CFBundleShortVersionString"])
+                [self.bundleVersionField setStringValue:[NSString stringWithFormat:@"%@ (%@)", [self.bundlePlistFile valueForKey:@"CFBundleShortVersionString"], [self.bundlePlistFile valueForKey:@"CFBundleVersion"]]];
+            else
+                [self.bundleVersionField setStringValue:[self.bundlePlistFile valueForKey:@"CFBundleVersion"]];
             
-            //set the app file icon path
-            self.appIconFilePath = [appDirectoryPath stringByAppendingPathComponent:[[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"iTunesArtwork"]];
-            if (![fileManager fileExistsAtPath:self.appIconFilePath]) { //iTunesArtwork file does not exist - look for Icon.png instead
-                self.appIconFilePath = [appDirectoryPath stringByAppendingPathComponent:[[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"Icon.png"]];
+            [self.bundleIdentifierField setStringValue:[self.bundlePlistFile valueForKey:@"CFBundleIdentifier"]];
+            
+            if ([self.bundlePlistFile valueForKey:@"CFBundleDisplayName"])
+                [self.bundleNameField setStringValue:[self.bundlePlistFile valueForKey:@"CFBundleDisplayName"]];
+            else
+                [self.bundleNameField setStringValue:@""];
+            
+            [self.webserverDirectoryField setStringValue:@""];
+            [self populateFieldsFromHistoryForBundleID:[self.bundlePlistFile valueForKey:@"CFBundleIdentifier"]];
+            
+            if ([self.bundlePlistFile valueForKey:@"MinimumOSVersion"]) {
+                CGFloat minimumOSVerson = [[self.bundlePlistFile valueForKey:@"MinimumOSVersion"] floatValue];
+                
+                if (minimumOSVerson < 4.0) {
+                    [self.includeZipFileButton setState:NSOnState];
+                } else {
+                    [self.includeZipFileButton setState:NSOffState];
+                }
             }
-		}
-	}
-	
-	[self.generateFilesButton setEnabled:YES];
+        }
+        
+        //set mobile provision file
+        self.mobileProvisionFilePath = [appDirectoryPath stringByAppendingPathComponent:[[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"embedded.mobileprovision"]];
+        
+        //set the app file icon path
+        self.appIconFilePath = [appDirectoryPath stringByAppendingPathComponent:[[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"iTunesArtwork"]];
+        if (![fileManager fileExistsAtPath:self.appIconFilePath]) { //iTunesArtwork file does not exist - look for Icon.png instead
+            self.appIconFilePath = [appDirectoryPath stringByAppendingPathComponent:[[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"Icon.png"]];
+        }
+    }
+    
+    [fileManager removeItemAtPath:tempFolder error:nil];
+    [self.generateFilesButton setEnabled:YES];
     
     if (self.saveToDefaultFolder) {
         NSString *bundleId = [self.bundlePlistFile valueForKey:@"CFBundleIdentifier"];
@@ -198,7 +185,7 @@
     }
 }
 
-- (void)storeFieldsInHistoryForBundleID:(NSString *)bundleID {    
+- (void)storeFieldsInHistoryForBundleID:(NSString *)bundleID {
     NSString *applicationSupportPath = [[NSFileManager defaultManager] applicationSupportDirectory];
     NSString *historyPath = [applicationSupportPath stringByAppendingPathComponent:@"history.plist"];
     NSString *trimmedURLString = [[self.webserverDirectoryField stringValue] stringByReplacingOccurrencesOfString:@" " withString:@""];
@@ -226,14 +213,14 @@
     //create plist
     NSString *encodedWebserver = [webserver stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding];
     NSString *trimmedURLString = [encodedWebserver stringByReplacingOccurrencesOfString:@" " withString:@""];
-	NSString *encodedIpaFilename = [[[self.archiveIPAFilenameField stringValue] lastPathComponent] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]; //this isn't the most robust way to do this
-	NSString *ipaURLString = [NSString stringWithFormat:@"%@/%@", trimmedURLString, encodedIpaFilename];
-	NSDictionary *assetsDictionary = [NSDictionary dictionaryWithObjectsAndKeys:@"software-package", @"kind", ipaURLString, @"url", nil];
-	NSDictionary *metadataDictionary = [NSDictionary dictionaryWithObjectsAndKeys:[self.bundleIdentifierField stringValue], @"bundle-identifier", [self.bundleVersionField stringValue], @"bundle-version", @"software", @"kind", [self.bundleNameField stringValue], @"title", nil];
-	NSDictionary *innerManifestDictionary = [NSDictionary dictionaryWithObjectsAndKeys:[NSArray arrayWithObject:assetsDictionary], @"assets", metadataDictionary, @"metadata", nil];
-	NSDictionary *outerManifestDictionary = [NSDictionary dictionaryWithObjectsAndKeys:[NSArray arrayWithObject:innerManifestDictionary], @"items", nil];
-	
-	//create html file    
+    NSString *encodedIpaFilename = [[[self.archiveIPAFilenameField stringValue] lastPathComponent] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]; //this isn't the most robust way to do this
+    NSString *ipaURLString = [NSString stringWithFormat:@"%@/%@", trimmedURLString, encodedIpaFilename];
+    NSDictionary *assetsDictionary = [NSDictionary dictionaryWithObjectsAndKeys:@"software-package", @"kind", ipaURLString, @"url", nil];
+    NSDictionary *metadataDictionary = [NSDictionary dictionaryWithObjectsAndKeys:[self.bundleIdentifierField stringValue], @"bundle-identifier", [self.bundleVersionField stringValue], @"bundle-version", @"software", @"kind", [self.bundleNameField stringValue], @"title", nil];
+    NSDictionary *innerManifestDictionary = [NSDictionary dictionaryWithObjectsAndKeys:[NSArray arrayWithObject:assetsDictionary], @"assets", metadataDictionary, @"metadata", nil];
+    NSDictionary *outerManifestDictionary = [NSDictionary dictionaryWithObjectsAndKeys:[NSArray arrayWithObject:innerManifestDictionary], @"items", nil];
+    
+    //create html file
     NSString *applicationSupportPath = [[NSFileManager defaultManager] applicationSupportDirectory];
     NSString *templatePath = nil;
     
@@ -241,7 +228,7 @@
         if ([_templateFile hasPrefix:@"~"]) {
             _templateFile = [_templateFile stringByExpandingTildeInPath];
         }
-
+        
         if ([_templateFile hasPrefix:@"/"]) {
             templatePath = _templateFile;
         } else  {
@@ -257,13 +244,13 @@
             templatePath = [applicationSupportPath stringByAppendingPathComponent:@"index_template_no_tether.html"];
         }
     }
-
-	NSString *htmlTemplateString = [NSString stringWithContentsOfFile:templatePath encoding:NSUTF8StringEncoding error:nil];
-	htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_NAME]" withString:[self.bundleNameField stringValue]];
+    
+    NSString *htmlTemplateString = [NSString stringWithContentsOfFile:templatePath encoding:NSUTF8StringEncoding error:nil];
+    htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_NAME]" withString:[self.bundleNameField stringValue]];
     htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_VERSION]" withString:[self.bundleVersionField stringValue]];
-	htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_PLIST]"
+    htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_PLIST]"
                                                                        withString:[NSString stringWithFormat:@"%@/%@", trimmedURLString, self.manifest]];
-	
+    
     //add formatted date
     NSDateFormatter *shortDateFormatter = [[NSDateFormatter alloc] init];
     [shortDateFormatter setTimeStyle:NSDateFormatterNoStyle];
@@ -272,7 +259,7 @@
     htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_DATE]" withString:formattedDateString];
     
     if (!outputPath) {
-    	//ask for save location	
+        //ask for save location
         NSOpenPanel *directoryPanel = [NSOpenPanel openPanel];
         [directoryPanel setCanChooseFiles:NO];
         [directoryPanel setCanChooseDirectories:YES];
@@ -311,7 +298,7 @@
             } else {
                 NSBeep();
             }
-        }    
+        }
     } else {
         NSURL *saveDirectoryURL = [NSURL fileURLWithPath:outputPath];
         [self saveFilesToOutputDirectory:saveDirectoryURL forManifestDictionary:outerManifestDictionary withTemplateHTML:htmlTemplateString];
@@ -346,9 +333,9 @@
     
     NSFileManager *fileManager = [NSFileManager defaultManager];
     [fileManager createDirectoryAtURL:saveDirectoryURL withIntermediateDirectories:YES attributes:nil error:nil];
-
+    
     fileManager.delegate = self;
-
+    
     //Copy IPA
     NSError *fileCopyError;
     NSURL *ipaSourceURL = [NSURL fileURLWithPath:[self.archiveIPAFilenameField stringValue]];
@@ -370,7 +357,7 @@
     if ([self.includeZipFileButton state] == NSOnState) {
         if ([self.overwriteFilesButton state] == NSOnState)
             [fileManager removeItemAtURL:[saveDirectoryURL URLByAppendingPathComponent:@"README.txt"] error:nil];
-
+        
         NSString *readmeContents = [[NSBundle mainBundle] pathForResource:@"README" ofType:@""];
         [readmeContents writeToURL:[saveDirectoryURL URLByAppendingPathComponent:@"README.txt"] atomically:YES encoding:NSASCIIStringEncoding error:nil];
     }
@@ -380,7 +367,7 @@
     if (doesArtworkExist) {
         NSString *artworkDestinationFilename = [NSString stringWithFormat:@"%@.png", [self.appIconFilePath lastPathComponent]];
         artworkDestinationFilename = [artworkDestinationFilename stringByReplacingOccurrencesOfString:@".png.png" withString:@".png"]; //fix for commonly incorrectly named files
-
+        
         NSURL *artworkSourceURL = [NSURL fileURLWithPath:self.appIconFilePath];
         NSURL *artworkDestinationURL = [saveDirectoryURL URLByAppendingPathComponent:artworkDestinationFilename];
         
@@ -419,8 +406,8 @@
     } else {
         savedSuccessfully = YES;
     }
-
-
+    
+    
     //Create Archived Version for 3.0 Apps
     if ([self.includeZipFileButton state] == NSOnState) {
         ZipArchive *zip = [[ZipArchive alloc] init];
@@ -428,12 +415,12 @@
         [zip CreateZipFile2:[[saveDirectoryURL path] stringByAppendingPathComponent:@"beta_archive.zip"]];
         [zip addFileToZip:[self.archiveIPAFilenameField stringValue] newname:@"application.ipa"];
         [zip addFileToZip:self.mobileProvisionFilePath newname:@"beta_provision.mobileprovision"];
-
+        
         if (![zip CloseZipFile2]) {
             NSLog(@"Error Creating 3.x Zip File");
         }
     }
-
+    
     [self.progressIndicator stopAnimation:nil];
     
     return savedSuccessfully;
@@ -442,7 +429,7 @@
 - (BOOL)fileManager:(NSFileManager *)fileManager shouldCopyItemAtURL:(NSURL *)srcURL toURL:(NSURL *)dstURL {
     if ([srcURL isEqual:dstURL])
         return NO;
-
+    
     if ([self.overwriteFilesButton state] == NSOnState) {
         if ([fileManager fileExistsAtPath:[dstURL path]]) {
             NSLog(@"Overwriting File: %@", dstURL);
