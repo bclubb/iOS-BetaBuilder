@@ -111,16 +111,17 @@
 	} else {
 		//Remove Existing to Trash in Temp Directory
         NSString *uudiStr = [[NSUUID UUID]UUIDString];
-		[fileManager removeItemAtPath:[NSTemporaryDirectory() stringByAppendingPathComponent:uudiStr] error:nil];
-		
+        NSString *tempFolder = [NSTemporaryDirectory() stringByAppendingPathComponent:uudiStr];
+		[fileManager removeItemAtPath:tempFolder error:nil];
+        NSLog(@"Temp folder is %@", tempFolder);
 		ZipArchive *za = [[ZipArchive alloc] init];
 		if ([za UnzipOpenFile:[ipaDestinationURL path]]) {
-			BOOL ret = [za UnzipFileTo:[NSTemporaryDirectory() stringByAppendingPathComponent:uudiStr] overWrite:YES];
+			BOOL ret = [za UnzipFileTo:tempFolder overWrite:YES];
 			if (NO == ret){} [za UnzipCloseFile];
 		}
 		
 		//read the Info.plist file
-		NSString *appDirectoryPath = [[NSTemporaryDirectory() stringByAppendingPathComponent:uudiStr] stringByAppendingPathComponent:@"Payload"];
+		NSString *appDirectoryPath = [tempFolder stringByAppendingPathComponent:@"Payload"];
 		NSArray *payloadContents = [fileManager contentsOfDirectoryAtPath:appDirectoryPath error:nil];
 		if ([payloadContents count] > 0) {
 			NSString *plistPath = [[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"Info.plist"];
@@ -231,7 +232,6 @@
 	NSDictionary *metadataDictionary = [NSDictionary dictionaryWithObjectsAndKeys:[self.bundleIdentifierField stringValue], @"bundle-identifier", [self.bundleVersionField stringValue], @"bundle-version", @"software", @"kind", [self.bundleNameField stringValue], @"title", nil];
 	NSDictionary *innerManifestDictionary = [NSDictionary dictionaryWithObjectsAndKeys:[NSArray arrayWithObject:assetsDictionary], @"assets", metadataDictionary, @"metadata", nil];
 	NSDictionary *outerManifestDictionary = [NSDictionary dictionaryWithObjectsAndKeys:[NSArray arrayWithObject:innerManifestDictionary], @"items", nil];
-	NSLog(@"Manifest Created");
 	
 	//create html file    
     NSString *applicationSupportPath = [[NSFileManager defaultManager] applicationSupportDirectory];
@@ -331,7 +331,10 @@
             request.HTTPBody = jsonData;
             request.HTTPMethod = @"POST";
             NSData *resultData = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:&error];
-            NSLog(@"IPAINSTALLED result %@ error %@", [[NSString alloc]initWithData:resultData encoding:NSUTF8StringEncoding],error);
+            NSLog(@"IPAINSTALLED result %@", [[NSString alloc]initWithData:resultData encoding:NSUTF8StringEncoding]);
+            if (error) {
+                NSLog(@"Error %@", error);
+            }
         }
     }
 }
@@ -403,14 +406,20 @@
     NSURL *manifestUrl = [saveDirectoryURL URLByAppendingPathComponent:self.manifest];
     [outerManifestDictionary writeToURL:manifestUrl atomically:YES];
     NSLog(@"Manifest file saved to %@", manifestUrl);
-    BOOL wroteHTMLFileSuccessfully = [htmlTemplateString writeToURL:[saveDirectoryURL URLByAppendingPathComponent:@"index.html"] atomically:YES encoding:NSUTF8StringEncoding error:&fileWriteError];
     
-    if (!wroteHTMLFileSuccessfully) {
-        NSLog(@"Error Writing HTML File: %@ to %@", fileWriteError, saveDirectoryURL);
-        savedSuccessfully = NO;
+    if (!self.saveToDefaultFolder) {
+        BOOL wroteHTMLFileSuccessfully = [htmlTemplateString writeToURL:[saveDirectoryURL URLByAppendingPathComponent:@"index.html"] atomically:YES encoding:NSUTF8StringEncoding error:&fileWriteError];
+        
+        if (!wroteHTMLFileSuccessfully) {
+            NSLog(@"Error Writing HTML File: %@ to %@", fileWriteError, saveDirectoryURL);
+            savedSuccessfully = NO;
+        } else {
+            savedSuccessfully = YES;
+        }
     } else {
         savedSuccessfully = YES;
     }
+
 
     //Create Archived Version for 3.0 Apps
     if ([self.includeZipFileButton state] == NSOnState) {
