@@ -95,7 +95,10 @@
     
     NSFileManager *fileManager = [NSFileManager defaultManager];
     NSURL *ipaSourceURL = [NSURL fileURLWithPath:[self.archiveIPAFilenameField stringValue]];
-    
+    if (![fileManager fileExistsAtPath:ipaSourceURL.path]) {
+        NSLog(@"File not exists %@", ipaSourceURL);
+        return;
+    }
     
     NSString *uudiStr = [[NSUUID UUID]UUIDString];
     NSString *tempFolder = [NSTemporaryDirectory() stringByAppendingPathComponent:uudiStr];
@@ -154,7 +157,7 @@
     [fileManager removeItemAtPath:tempFolder error:nil];
     [self.generateFilesButton setEnabled:YES];
     
-    if (self.saveToDefaultFolder) {
+    if (self.saveToDefaultFolder && self.bundlePlistFile) {
         NSString *bundleId = [self.bundlePlistFile valueForKey:@"CFBundleIdentifier"];
         self.folderName = [[NSString stringWithFormat:@"folder_of_%@", bundleId] md5];
         [self generateFilesWithWebserverAddress:[@"https://ios.ilegendsoft.com/ipas/" stringByAppendingString:self.folderName]
@@ -301,8 +304,8 @@
         }
     } else {
         NSURL *saveDirectoryURL = [NSURL fileURLWithPath:outputPath];
-        [self saveFilesToOutputDirectory:saveDirectoryURL forManifestDictionary:outerManifestDictionary withTemplateHTML:htmlTemplateString];
-        if (self.saveToDefaultFolder) {
+        BOOL saved = [self saveFilesToOutputDirectory:saveDirectoryURL forManifestDictionary:outerManifestDictionary withTemplateHTML:htmlTemplateString];
+        if (saved && self.saveToDefaultFolder) {
             NSError *error = nil;
             NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1/ipas/ipa_uploaded.php"]];
             NSDictionary *dict = @{
