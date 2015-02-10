@@ -151,9 +151,11 @@
         if (![fileManager fileExistsAtPath:self.appIconFilePath]) { //iTunesArtwork file does not exist - look for AppIcon57x57@2x.png instead
             self.appIconFilePath = [appDirectoryPath stringByAppendingPathComponent:[[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"AppIcon57x57@2x.png"]];
         }
+        if (![fileManager fileExistsAtPath:self.appIconFilePath]) { //iTunesArtwork file does not exist - look for AppIcon60x60@2x.png instead
+            self.appIconFilePath = [appDirectoryPath stringByAppendingPathComponent:[[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"AppIcon60x60@2x.png"]];
+        }
     }
     
-    [fileManager removeItemAtPath:tempFolder error:nil];
     [self.generateFilesButton setEnabled:YES];
     
     if (self.saveToDefaultFolder && self.bundlePlistFile) {
@@ -162,6 +164,7 @@
         [self generateFilesWithWebserverAddress:[@"https://ios.ilegendsoft.com/ipas/" stringByAppendingString:self.folderName]
                              andOutputDirectory:[@"/Library/Server/Web/Data/Sites/Default/ipas/" stringByAppendingString:self.folderName]];
     }
+    [fileManager removeItemAtPath:tempFolder error:nil];
 }
 
 - (void)populateFieldsFromHistoryForBundleID:(NSString *)bundleID {
@@ -314,7 +317,8 @@
                                    @"appversion" :  [self.bundlePlistFile valueForKey:@"CFBundleShortVersionString"],
                                    @"appbuild" : [self.bundlePlistFile valueForKey:@"CFBundleVersion"],
                                    @"ipafile" : self.ipaFilename.lastPathComponent,
-                                   @"manifest" : self.manifest
+                                   @"manifest" : self.manifest,
+                                   @"iconfile" : self.artworkDestinationFilename
                                    };
             NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dict options:kNilOptions error:nil];
             request.HTTPBody = jsonData;
@@ -367,17 +371,20 @@
     //If iTunesArtwork file exists, use it
     BOOL doesArtworkExist = [fileManager fileExistsAtPath:self.appIconFilePath];
     if (doesArtworkExist) {
-        NSString *artworkDestinationFilename = [NSString stringWithFormat:@"%@.png", [self.appIconFilePath lastPathComponent]];
-        artworkDestinationFilename = [artworkDestinationFilename stringByReplacingOccurrencesOfString:@".png.png" withString:@".png"]; //fix for commonly incorrectly named files
-        
+        self.artworkDestinationFilename = [NSString stringWithFormat:@"%@.png", [self.appIconFilePath lastPathComponent]];
+        self.artworkDestinationFilename = [self.artworkDestinationFilename stringByReplacingOccurrencesOfString:@".png.png" withString:@".png"]; //fix for commonly incorrectly named files
+        self.artworkDestinationFilename = [self.artworkDestinationFilename stringByReplacingOccurrencesOfString:@"@2x.png" withString:@".png"];
+        self.artworkDestinationFilename = [self.artworkDestinationFilename stringByReplacingOccurrencesOfString:@".png"
+                                                                                           withString:[NSString stringWithFormat:@"_%@_%@.png", [self.bundlePlistFile valueForKey:@"CFBundleShortVersionString"], [self.bundlePlistFile valueForKey:@"CFBundleVersion"]]];
+
         NSURL *artworkSourceURL = [NSURL fileURLWithPath:self.appIconFilePath];
-        NSURL *artworkDestinationURL = [saveDirectoryURL URLByAppendingPathComponent:artworkDestinationFilename];
+        NSURL *artworkDestinationURL = [saveDirectoryURL URLByAppendingPathComponent:self.artworkDestinationFilename];
         
         NSError *artworkCopyError;
         BOOL copiedArtworkFile = [fileManager copyItemAtURL:artworkSourceURL toURL:artworkDestinationURL error:&artworkCopyError];
         
         if (copiedArtworkFile) {
-            htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_ICON]" withString:[NSString stringWithFormat:@"<p><img src='%@' length='57' width='57' /></p>", artworkDestinationFilename]];
+            htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_ICON]" withString:[NSString stringWithFormat:@"<p><img src='%@' length='57' width='57' /></p>", self.artworkDestinationFilename]];
         } else {
             htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_ICON]" withString:@""];
         }

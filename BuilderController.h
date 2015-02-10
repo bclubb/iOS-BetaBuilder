@@ -63,6 +63,7 @@
 @property (nonatomic, strong) NSString *ipaFilename;
 @property (nonatomic, strong) NSString *manifest;
 @property (nonatomic, strong) NSDictionary *bundlePlistFile;
+@property (nonatomic, strong) NSString *artworkDestinationFilename;
 
 - (IBAction)specifyIPAFile:(id)sender;
 - (IBAction)generateFiles:(id)sender;
