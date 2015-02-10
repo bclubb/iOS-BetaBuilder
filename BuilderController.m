@@ -32,7 +32,6 @@
 #import "NSFileManager+DirectoryLocations.h"
 #import "BuilderController.h"
 #import "ZipArchive.h"
-
 #import <CommonCrypto/CommonDigest.h> // Need to import for CC_MD5 access
 
 @implementation NSString (MyAdditions)
@@ -149,8 +148,8 @@
         
         //set the app file icon path
         self.appIconFilePath = [appDirectoryPath stringByAppendingPathComponent:[[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"iTunesArtwork"]];
-        if (![fileManager fileExistsAtPath:self.appIconFilePath]) { //iTunesArtwork file does not exist - look for Icon.png instead
-            self.appIconFilePath = [appDirectoryPath stringByAppendingPathComponent:[[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"Icon.png"]];
+        if (![fileManager fileExistsAtPath:self.appIconFilePath]) { //iTunesArtwork file does not exist - look for AppIcon57x57@2x.png instead
+            self.appIconFilePath = [appDirectoryPath stringByAppendingPathComponent:[[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"AppIcon57x57@2x.png"]];
         }
     }
     
@@ -384,7 +383,6 @@
         }
     } else {
         NSLog(@"No iTunesArtwork File Exists in Bundle");
-        
         htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_ICON]" withString:@""];
     }
     

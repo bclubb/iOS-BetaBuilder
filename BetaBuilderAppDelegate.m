@@ -127,7 +127,6 @@
 #define kTemplateArgument @"-template"
 
 - (BOOL)processCommandLineArguments:(NSArray *)arguments {
-    NSLog(@"Processing Command Line Arguments");
 
     BOOL processedArgs = NO;
     
@@ -185,11 +184,8 @@
     if (returnCode == NSAlertAlternateReturn) {
         if (contextInfo) {
             NSLog(@"Remove Existing Index File %@", self.indexTemplateAlertPaths[@"toPath"]);
-
             NSFileManager *fileManager = [NSFileManager defaultManager];
-
             [fileManager removeItemAtPath:self.indexTemplateAlertPaths[@"toPath"] error:nil];
-            
             [fileManager copyItemAtPath:self.indexTemplateAlertPaths[@"fromPath"] toPath:self.indexTemplateAlertPaths[@"toPath"] error:nil];
         }
     } else if (returnCode == NSAlertDefaultReturn) {
