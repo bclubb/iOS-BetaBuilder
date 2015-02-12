@@ -142,18 +142,32 @@
                 }
             }
         }
-        
+        NSString *payloadPath = [appDirectoryPath stringByAppendingPathComponent:[payloadContents objectAtIndex:0]];
         //set mobile provision file
-        self.mobileProvisionFilePath = [appDirectoryPath stringByAppendingPathComponent:[[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"embedded.mobileprovision"]];
+        self.mobileProvisionFilePath = [payloadPath stringByAppendingPathComponent:@"embedded.mobileprovision"];
         
         //set the app file icon path
-        self.appIconFilePath = [appDirectoryPath stringByAppendingPathComponent:[[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"iTunesArtwork"]];
-        if (![fileManager fileExistsAtPath:self.appIconFilePath]) { //iTunesArtwork file does not exist - look for AppIcon57x57@2x.png instead
-            self.appIconFilePath = [appDirectoryPath stringByAppendingPathComponent:[[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"AppIcon57x57@2x.png"]];
+        self.appIconFilePath = [payloadPath stringByAppendingPathComponent:@"iTunesArtwork"];
+        //iTunesArtwork file does not exist - look for AppIcon60x60@2x.png instead
+        if (![fileManager fileExistsAtPath:self.appIconFilePath]) {
+            self.appIconFilePath = [payloadPath stringByAppendingPathComponent:@"AppIcon60x60@2x.png"];
         }
-        if (![fileManager fileExistsAtPath:self.appIconFilePath]) { //iTunesArtwork file does not exist - look for AppIcon60x60@2x.png instead
-            self.appIconFilePath = [appDirectoryPath stringByAppendingPathComponent:[[payloadContents objectAtIndex:0] stringByAppendingPathComponent:@"AppIcon60x60@2x.png"]];
+        //iTunesArtwork file does not exist - look for AppIcon57x57@2x.png instead
+       if (![fileManager fileExistsAtPath:self.appIconFilePath]) {
+            self.appIconFilePath = [payloadPath stringByAppendingPathComponent:@"AppIcon57x57@2x.png"];
         }
+        
+        // Now search AppIcon*.png
+        if (![fileManager fileExistsAtPath:self.appIconFilePath]) {
+            NSArray *dirContents = [fileManager contentsOfDirectoryAtPath:payloadPath error:nil];
+            NSPredicate *fltr = [NSPredicate predicateWithFormat:@"self ENDSWITH[c] '.png' && self BEGINSWITH[c] 'AppIcon'"];
+            NSArray *possibleIcons = [dirContents filteredArrayUsingPredicate:fltr];
+            NSLog(@"Using possibleIcons %@", possibleIcons);
+            if (possibleIcons.count) {
+                self.appIconFilePath = [payloadPath stringByAppendingString:possibleIcons.firstObject];
+            }
+        }
+        
     }
     
     [self.generateFilesButton setEnabled:YES];
