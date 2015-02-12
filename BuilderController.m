@@ -308,26 +308,31 @@
         NSURL *saveDirectoryURL = [NSURL fileURLWithPath:outputPath];
         BOOL saved = [self saveFilesToOutputDirectory:saveDirectoryURL forManifestDictionary:outerManifestDictionary withTemplateHTML:htmlTemplateString];
         if (saved && self.saveToDefaultFolder) {
-            NSError *error = nil;
-            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1/ipas/ipa_uploaded.php"]];
-            NSDictionary *dict = @{
-                                   @"bundleid" : [self.bundlePlistFile valueForKey:@"CFBundleIdentifier"],
-                                   @"folder" : self.folderName,
-                                   @"displayname" : [self.bundlePlistFile valueForKey:@"CFBundleDisplayName"],
-                                   @"appversion" :  [self.bundlePlistFile valueForKey:@"CFBundleShortVersionString"],
-                                   @"appbuild" : [self.bundlePlistFile valueForKey:@"CFBundleVersion"],
-                                   @"ipafile" : self.ipaFilename.lastPathComponent,
-                                   @"manifest" : self.manifest,
-                                   @"iconfile" : self.artworkDestinationFilename
-                                   };
-            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dict options:kNilOptions error:nil];
-            request.HTTPBody = jsonData;
-            request.HTTPMethod = @"POST";
-            NSData *resultData = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:&error];
-            NSLog(@"IPAINSTALLED result %@", [[NSString alloc]initWithData:resultData encoding:NSUTF8StringEncoding]);
-            if (error) {
-                NSLog(@"Error %@", error);
+            if (self.artworkDestinationFilename && self.folderName && self.ipaFilename && self.manifest) {
+                NSError *error = nil;
+                NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1/ipas/ipa_uploaded.php"]];
+                NSDictionary *dict = @{
+                                       @"bundleid" : [self.bundlePlistFile valueForKey:@"CFBundleIdentifier"],
+                                       @"folder" : self.folderName,
+                                       @"displayname" : [self.bundlePlistFile valueForKey:@"CFBundleDisplayName"],
+                                       @"appversion" :  [self.bundlePlistFile valueForKey:@"CFBundleShortVersionString"],
+                                       @"appbuild" : [self.bundlePlistFile valueForKey:@"CFBundleVersion"],
+                                       @"ipafile" : self.ipaFilename.lastPathComponent,
+                                       @"manifest" : self.manifest,
+                                       @"iconfile" : self.artworkDestinationFilename
+                                       };
+                NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dict options:kNilOptions error:nil];
+                request.HTTPBody = jsonData;
+                request.HTTPMethod = @"POST";
+                NSData *resultData = [NSURLConnection sendSynchronousRequest:request returningResponse:nil error:&error];
+                NSLog(@"IPAINSTALLED result %@", [[NSString alloc]initWithData:resultData encoding:NSUTF8StringEncoding]);
+                if (error) {
+                    NSLog(@"Error %@", error);
+                }
+            } else {
+                NSLog(@"=========== error =========== %@ %@ %@ %@", self.artworkDestinationFilename, self.folderName, self.ipaFilename, self.manifest);
             }
+            
         }
     }
 }
