@@ -157,9 +157,9 @@
             self.appIconFilePath = [payloadPath stringByAppendingPathComponent:@"AppIcon57x57@2x.png"];
         }
         
-        // Now search AppIcon*.png
+        // Now search All AppIcon*.png
         if (![fileManager fileExistsAtPath:self.appIconFilePath]) {
-            NSArray *dirContents = [fileManager contentsOfDirectoryAtPath:payloadPath error:nil];
+            NSArray *dirContents = [[fileManager contentsOfDirectoryAtPath:payloadPath error:nil]sortedArrayUsingSelector:@selector(compare:)];
             NSPredicate *fltr = [NSPredicate predicateWithFormat:@"self ENDSWITH[c] '.png' && self BEGINSWITH[c] 'AppIcon'"];
             NSArray *possibleIcons = [dirContents filteredArrayUsingPredicate:fltr];
             NSLog(@"Using possibleIcons %@", possibleIcons);
