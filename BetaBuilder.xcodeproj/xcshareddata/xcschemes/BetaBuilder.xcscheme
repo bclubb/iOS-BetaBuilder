@@ -59,7 +59,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-ipaPath=/Users/xcodeserver/Desktop/_ota_source/PhotoCleaner-1.0-102.ipa"
+            argument = "-ipaPath=/Users/xcodeserver/Desktop/_ota_source/snapgrabfree-4.4-152.ipa"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>

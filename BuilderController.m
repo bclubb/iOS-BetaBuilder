@@ -164,7 +164,7 @@
             NSArray *possibleIcons = [dirContents filteredArrayUsingPredicate:fltr];
             NSLog(@"Using possibleIcons %@", possibleIcons);
             if (possibleIcons.count) {
-                self.appIconFilePath = [payloadPath stringByAppendingString:possibleIcons.firstObject];
+                self.appIconFilePath = [payloadPath stringByAppendingPathComponent:possibleIcons.firstObject];
             }
         }
         
