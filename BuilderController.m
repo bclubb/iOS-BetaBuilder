@@ -260,22 +260,22 @@
 - (NSString *)provisionModeString: (UIApplicationReleaseMode) mode {
     switch (mode) {
         case UIApplicationReleaseUnknown:
-            return @"unknwon";
+            return @"未知";
             break;
         case UIApplicationReleaseSim:
-            return @"sim";
+            return @"模拟器";
             break;
         case UIApplicationReleaseDev:
-            return @"dev";
+            return @"开发版";
             break;
         case UIApplicationReleaseAdHoc:
-            return @"adhoc";
+            return @"内测版";
             break;
         case UIApplicationReleaseAppStore:
-            return @"appstore";
+            return @"下载版";
             break;
         case UIApplicationReleaseEnterprise:
-            return @"entprise";
+            return @"企业版";
             break;
             
         default:
