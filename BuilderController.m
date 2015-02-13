@@ -145,6 +145,7 @@
         NSString *payloadPath = [appDirectoryPath stringByAppendingPathComponent:[payloadContents objectAtIndex:0]];
         //set mobile provision file
         self.mobileProvisionFilePath = [payloadPath stringByAppendingPathComponent:@"embedded.mobileprovision"];
+        self.mobileProvision = [self getMobileProvision];
         
         //set the app file icon path
         self.appIconFilePath = [payloadPath stringByAppendingPathComponent:@"iTunesArtwork"];
@@ -179,6 +180,108 @@
                              andOutputDirectory:[@"/Library/Server/Web/Data/Sites/Default/ipas/" stringByAppendingString:self.folderName]];
     }
     [fileManager removeItemAtPath:tempFolder error:nil];
+}
+
+-(NSDictionary*) getMobileProvision {
+    static NSDictionary* mobileProvision = nil;
+    if (!mobileProvision) {
+        if (![[NSFileManager defaultManager]fileExistsAtPath:self.mobileProvisionFilePath]) {
+            NSLog(@"Mobile Provision File not exists %@", self.mobileProvisionFilePath);
+            return nil;
+        }
+        // NSISOLatin1 keeps the binary wrapper from being parsed as unicode and dropped as invalid
+        NSString *binaryString = [NSString stringWithContentsOfFile:self.mobileProvisionFilePath
+                                                           encoding:NSISOLatin1StringEncoding
+                                                              error:NULL];
+        if (!binaryString) {
+            return nil;
+        }
+        NSScanner *scanner = [NSScanner scannerWithString:binaryString];
+        BOOL ok = [scanner scanUpToString:@"<plist" intoString:nil];
+        if (!ok) {
+            NSLog(@"unable to find beginning of plist");
+            return nil;
+        }
+        
+        NSString *plistString;
+        ok = [scanner scanUpToString:@"</plist>" intoString:&plistString];
+        if (!ok) {
+            NSLog(@"unable to find end of plist");
+            return nil;
+        }
+        
+        plistString = [NSString stringWithFormat:@"%@</plist>",plistString];
+// juggle latin1 back to utf-8!
+        NSData *plistdata_latin1 = [plistString dataUsingEncoding:NSISOLatin1StringEncoding];
+//		plistString = [NSString stringWithUTF8String:[plistdata_latin1 bytes]];
+//		NSData *plistdata2_latin1 = [plistString dataUsingEncoding:NSISOLatin1StringEncoding];
+        NSError *error = nil;
+        mobileProvision = [NSPropertyListSerialization propertyListWithData:plistdata_latin1 options:NSPropertyListImmutable format:NULL error:&error];
+        if (error) {
+            NSLog(@"error parsing extracted plist — %@",error);
+            if (mobileProvision) {
+                mobileProvision = nil;
+            }
+            return nil;
+        }
+    }
+    return mobileProvision;
+}
+
+-(UIApplicationReleaseMode) provisionMode {
+
+    if (!self.mobileProvision) {
+        // failure to read other than it simply not existing
+        return UIApplicationReleaseUnknown;
+    } else if (![self.mobileProvision count]) {
+#if TARGET_IPHONE_SIMULATOR
+        return UIApplicationReleaseSim;
+#else
+        return UIApplicationReleaseAppStore;
+#endif
+    } else if ([[self.mobileProvision objectForKey:@"ProvisionsAllDevices"] boolValue]) {
+        // enterprise distribution contains ProvisionsAllDevices - true
+        return UIApplicationReleaseEnterprise;
+    } else if ([self.mobileProvision objectForKey:@"ProvisionedDevices"] && [[self.mobileProvision objectForKey:@"ProvisionedDevices"] count] > 0) {
+        // development contains UDIDs and get-task-allow is true
+        // ad hoc contains UDIDs and get-task-allow is false
+        NSDictionary *entitlements = [self.mobileProvision objectForKey:@"Entitlements"];
+        if ([[entitlements objectForKey:@"get-task-allow"] boolValue]) {
+            return UIApplicationReleaseDev;
+        } else {
+            return UIApplicationReleaseAdHoc;
+        }
+    } else {
+        // app store contains no UDIDs (if the file exists at all?)
+        return UIApplicationReleaseAppStore;
+    }
+}
+
+- (NSString *)provisionModeString: (UIApplicationReleaseMode) mode {
+    switch (mode) {
+        case UIApplicationReleaseUnknown:
+            return @"unknwon";
+            break;
+        case UIApplicationReleaseSim:
+            return @"sim";
+            break;
+        case UIApplicationReleaseDev:
+            return @"dev";
+            break;
+        case UIApplicationReleaseAdHoc:
+            return @"adhoc";
+            break;
+        case UIApplicationReleaseAppStore:
+            return @"appstore";
+            break;
+        case UIApplicationReleaseEnterprise:
+            return @"entprise";
+            break;
+            
+        default:
+            return @"unknown";
+            break;
+    }
 }
 
 - (void)populateFieldsFromHistoryForBundleID:(NSString *)bundleID {
@@ -326,6 +429,7 @@
                 NSError *error = nil;
                 NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1/ipas/ipa_uploaded.php"]];
                 NSDictionary *dict = @{
+                                       @"provision" : [self provisionModeString:[self provisionMode]],
                                        @"bundleid" : [self.bundlePlistFile valueForKey:@"CFBundleIdentifier"],
                                        @"folder" : self.folderName,
                                        @"displayname" : [self.bundlePlistFile valueForKey:@"CFBundleDisplayName"],

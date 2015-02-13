@@ -29,6 +29,19 @@
  3. This notice may not be removed or altered from any source distribution.
  */
 
+
+//
+// https://github.com/blindsightcorp/BSMobileProvision
+//
+typedef NS_ENUM(NSInteger, UIApplicationReleaseMode) {
+    UIApplicationReleaseUnknown = 0,
+    UIApplicationReleaseSim,
+    UIApplicationReleaseDev,
+    UIApplicationReleaseAdHoc,
+    UIApplicationReleaseAppStore,
+    UIApplicationReleaseEnterprise,
+};
+
 #import <Cocoa/Cocoa.h>
 
 @interface NSString (MyAdditions)
@@ -64,6 +77,7 @@
 @property (nonatomic, strong) NSString *manifest;
 @property (nonatomic, strong) NSDictionary *bundlePlistFile;
 @property (nonatomic, strong) NSString *artworkDestinationFilename;
+@property (nonatomic, strong) NSDictionary *mobileProvision;
 
 - (IBAction)specifyIPAFile:(id)sender;
 - (IBAction)generateFiles:(id)sender;
