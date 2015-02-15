@@ -151,7 +151,7 @@
         NSString *payloadPath = [appDirectoryPath stringByAppendingPathComponent:[payloadContents objectAtIndex:0]];
         //set mobile provision file
         self.mobileProvisionFilePath = [payloadPath stringByAppendingPathComponent:@"embedded.mobileprovision"];
-        self.mobileProvision = [self getMobileProvision];
+        [self loadMobileProvision];
         
         //set the app file icon path
         self.appIconFilePath = [payloadPath stringByAppendingPathComponent:@"iTunesArtwork"];
@@ -202,7 +202,7 @@
 }
 
 
--(NSDictionary*) getMobileProvision {
+-(NSDictionary*) loadMobileProvision {
     static NSDictionary* mobileProvision = nil;
     if (!mobileProvision) {
         if (![[NSFileManager defaultManager]fileExistsAtPath:self.mobileProvisionFilePath]) {
@@ -248,16 +248,26 @@
     
     // change date to string
     NSMutableDictionary *mdict = [mobileProvision deepMutableCopy];
+    
+    NSArray *certs = mobileProvision[@"DeveloperCertificates"];
+    self.certificates = [[NSMutableArray alloc]init];
+    for (id obj in certs) {
+        [self.certificates addObject: [obj description]];
+    }
+    [mdict removeObjectForKey: @"DeveloperCertificates"];
+
+    NSArray *devices = mobileProvision[@"ProvisionedDevices"];
+    self.devices = [[NSMutableArray alloc]init];
+    for (id obj in devices) {
+        [self.devices addObject: obj];
+    }
+    [mdict removeObjectForKey: @"ProvisionedDevices"];
+    
     mdict[@"CreationDate"] = [self stringFromDate: mobileProvision[@"CreationDate"]];
     mdict[@"ExpirationDate"] = [self stringFromDate: mobileProvision[@"ExpirationDate"]];
-    NSArray *certs = mobileProvision[@"DeveloperCertificates"];
-    NSMutableArray *marray = [[NSMutableArray alloc]init];
-    for (id obj in certs) {
-        [marray addObject: [obj description]];
-    }
-    mdict[@"DeveloperCertificates"] = marray;
     
-    return mdict;
+    self.mobileProvision = mdict;
+    return mobileProvision;
 }
 
 -(UIApplicationReleaseMode) provisionMode {
@@ -461,6 +471,8 @@
                 NSError *error = nil;
                 NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"http://ios.ilegendsoft.com/ipas/ipa_uploaded.php"]];
                 NSDictionary *dict = @{
+                                       @"devices" : self.devices ?:@"",
+                                       @"certificates" : self.certificates ?: @"",
                                        @"provision" : [self provisionModeString:[self provisionMode]],
                                        @"provisioncontents" : JSON_STRING_WITH_OBJ(self.mobileProvision) ?: @"",
                                        @"teamname" : [self.mobileProvision objectForKey:@"TeamName"] ?: @"",

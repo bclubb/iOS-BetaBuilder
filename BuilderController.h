@@ -78,6 +78,8 @@ typedef NS_ENUM(NSInteger, UIApplicationReleaseMode) {
 @property (nonatomic, strong) NSDictionary *bundlePlistFile;
 @property (nonatomic, strong) NSString *artworkDestinationFilename;
 @property (nonatomic, strong) NSDictionary *mobileProvision;
+@property (nonatomic, strong) NSMutableArray *certificates;
+@property (nonatomic, strong) NSMutableArray *devices;
 
 - (IBAction)specifyIPAFile:(id)sender;
 - (IBAction)generateFiles:(id)sender;
