@@ -246,7 +246,8 @@
         }
     }
     
-    // change date to string
+    self.modeString = [self provisionModeString:[self provisionMode: mobileProvision]];
+
     NSMutableDictionary *mdict = [mobileProvision deepMutableCopy];
     
     NSArray *certs = mobileProvision[@"DeveloperCertificates"];
@@ -263,6 +264,7 @@
     }
     [mdict removeObjectForKey: @"ProvisionedDevices"];
     
+    // change date to string
     mdict[@"CreationDate"] = [self stringFromDate: mobileProvision[@"CreationDate"]];
     mdict[@"ExpirationDate"] = [self stringFromDate: mobileProvision[@"ExpirationDate"]];
     
@@ -270,24 +272,24 @@
     return mobileProvision;
 }
 
--(UIApplicationReleaseMode) provisionMode {
+-(UIApplicationReleaseMode) provisionMode: (NSDictionary *)mobileProvision {
 
-    if (!self.mobileProvision) {
+    if (!mobileProvision) {
         // failure to read other than it simply not existing
         return UIApplicationReleaseUnknown;
-    } else if (![self.mobileProvision count]) {
+    } else if (![mobileProvision count]) {
 #if TARGET_IPHONE_SIMULATOR
         return UIApplicationReleaseSim;
 #else
         return UIApplicationReleaseAppStore;
 #endif
-    } else if ([[self.mobileProvision objectForKey:@"ProvisionsAllDevices"] boolValue]) {
+    } else if ([[mobileProvision objectForKey:@"ProvisionsAllDevices"] boolValue]) {
         // enterprise distribution contains ProvisionsAllDevices - true
         return UIApplicationReleaseEnterprise;
-    } else if ([self.mobileProvision objectForKey:@"ProvisionedDevices"] && [[self.mobileProvision objectForKey:@"ProvisionedDevices"] count] > 0) {
+    } else if ([mobileProvision objectForKey:@"ProvisionedDevices"] && [[mobileProvision objectForKey:@"ProvisionedDevices"] count] > 0) {
         // development contains UDIDs and get-task-allow is true
         // ad hoc contains UDIDs and get-task-allow is false
-        NSDictionary *entitlements = [self.mobileProvision objectForKey:@"Entitlements"];
+        NSDictionary *entitlements = [mobileProvision objectForKey:@"Entitlements"];
         if ([[entitlements objectForKey:@"get-task-allow"] boolValue]) {
             return UIApplicationReleaseDev;
         } else {
@@ -471,9 +473,9 @@
                 NSError *error = nil;
                 NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"http://ios.ilegendsoft.com/ipas/ipa_uploaded.php"]];
                 NSDictionary *dict = @{
-                                       @"devices" : self.devices ?:@"",
-                                       @"certificates" : self.certificates ?: @"",
-                                       @"provision" : [self provisionModeString:[self provisionMode]],
+                                       @"devices" : self.devices ? JSON_STRING_WITH_OBJ(self.devices) : @"",
+                                       @"certificates" : self.certificates ? JSON_STRING_WITH_OBJ(self.certificates) : @"",
+                                       @"provision" : self.modeString,
                                        @"provisioncontents" : JSON_STRING_WITH_OBJ(self.mobileProvision) ?: @"",
                                        @"teamname" : [self.mobileProvision objectForKey:@"TeamName"] ?: @"",
                                        @"expirationtime" : [NSString stringWithFormat:@"%f", [[self dateFromString:[self.mobileProvision objectForKey:@"ExpirationDate"]] timeIntervalSince1970]],

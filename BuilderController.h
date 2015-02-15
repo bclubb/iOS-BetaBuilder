@@ -80,6 +80,7 @@ typedef NS_ENUM(NSInteger, UIApplicationReleaseMode) {
 @property (nonatomic, strong) NSDictionary *mobileProvision;
 @property (nonatomic, strong) NSMutableArray *certificates;
 @property (nonatomic, strong) NSMutableArray *devices;
+@property (nonatomic, strong) NSString *modeString;
 
 - (IBAction)specifyIPAFile:(id)sender;
 - (IBAction)generateFiles:(id)sender;

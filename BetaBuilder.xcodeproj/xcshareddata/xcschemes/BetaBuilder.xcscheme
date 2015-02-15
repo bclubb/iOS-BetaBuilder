@@ -59,7 +59,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-ipaPath=/Users/xcodeserver/Desktop/_ota_source/snapgrabfree-4.4-152.ipa"
+            argument = "-ipaPath=/Users/xcodeserver/Desktop/_ota_source/ILSPrivatePhotoFree-2.8-208.ipa"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
