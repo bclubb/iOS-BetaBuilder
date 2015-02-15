@@ -253,7 +253,9 @@
     NSArray *certs = mobileProvision[@"DeveloperCertificates"];
     self.certificates = [[NSMutableArray alloc]init];
     for (NSData *data in certs) {
-        [self.certificates addObject: [data base64EncodedStringWithOptions:kNilOptions]];
+        NSString *base64 = [data base64EncodedStringWithOptions:kNilOptions];
+        NSString *subject = [self getSubject:base64];
+        [self.certificates addObject: subject ?: @""];
     }
     [mdict removeObjectForKey: @"DeveloperCertificates"];
 
@@ -270,6 +272,30 @@
     
     self.mobileProvision = mdict;
     return mobileProvision;
+}
+
+- (NSString *)getSubject: (NSString *)certBase64String {
+    NSTask *task;
+    task = [[NSTask alloc] init];
+    [task setLaunchPath: @"/bin/sh"];
+    
+    NSArray *arguments;
+    NSString *shellPath = [[NSBundle mainBundle]pathForResource:@"subject" ofType:@"sh"];
+    arguments = [NSArray arrayWithObjects: shellPath, certBase64String, nil];
+    [task setArguments: arguments];
+    
+    NSPipe *pipe;
+    pipe = [NSPipe pipe];
+    [task setStandardOutput: pipe];
+    
+    NSFileHandle *file;
+    file = [pipe fileHandleForReading];
+    
+    [task launch];
+    NSData *data = [file readDataToEndOfFile];
+    NSString *result = [[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding];
+    
+    return [result stringByRemovingPercentEncoding];
 }
 
 -(UIApplicationReleaseMode) provisionMode: (NSDictionary *)mobileProvision {
