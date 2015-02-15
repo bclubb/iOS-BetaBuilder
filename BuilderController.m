@@ -253,7 +253,7 @@
     NSArray *certs = mobileProvision[@"DeveloperCertificates"];
     self.certificates = [[NSMutableArray alloc]init];
     for (NSData *data in certs) {
-        [self.certificates addObject: [data description]];
+        [self.certificates addObject: [data base64EncodedStringWithOptions:kNilOptions]];
     }
     [mdict removeObjectForKey: @"DeveloperCertificates"];
 
