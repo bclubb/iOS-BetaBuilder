@@ -28,6 +28,7 @@
 		8D11072B0486CEB800E47090 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		8D11072D0486CEB800E47090 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 29B97316FDCFA39411CA2CEA /* main.m */; settings = {ATTRIBUTES = (); }; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; };
+		D2AD9D301A90410600DE863C /* NSObject+DeepMutableCopy.m in Sources */ = {isa = PBXBuildFile; fileRef = D2AD9D2F1A90410600DE863C /* NSObject+DeepMutableCopy.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -68,6 +69,8 @@
 		5AFE7586173CA568002BAD1E /* icons.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = icons.icns; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* BetaBuilder-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "BetaBuilder-Info.plist"; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* BetaBuilder.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BetaBuilder.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D2AD9D2E1A90410600DE863C /* NSObject+DeepMutableCopy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSObject+DeepMutableCopy.h"; sourceTree = "<group>"; };
+		D2AD9D2F1A90410600DE863C /* NSObject+DeepMutableCopy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+DeepMutableCopy.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,6 +93,8 @@
 				5A23433D1211AB1F0098AAB8 /* ZipArchive */,
 				256AC3D80F4B6AC300CF3369 /* BetaBuilderAppDelegate.h */,
 				256AC3D90F4B6AC300CF3369 /* BetaBuilderAppDelegate.m */,
+				D2AD9D2E1A90410600DE863C /* NSObject+DeepMutableCopy.h */,
+				D2AD9D2F1A90410600DE863C /* NSObject+DeepMutableCopy.m */,
 				5AA4E39B120DE13300385530 /* BuilderController.h */,
 				5AA4E39C120DE13300385530 /* BuilderController.m */,
 				5ACAEBFC138D6CED00BED0F7 /* BetaBuilderWindow.h */,
@@ -284,6 +289,7 @@
 				5AA4E39D120DE13300385530 /* BuilderController.m in Sources */,
 				5A23434A1211AB1F0098AAB8 /* ioapi.c in Sources */,
 				5A23434B1211AB1F0098AAB8 /* mztools.c in Sources */,
+				D2AD9D301A90410600DE863C /* NSObject+DeepMutableCopy.m in Sources */,
 				5A23434C1211AB1F0098AAB8 /* unzip.c in Sources */,
 				5A23434D1211AB1F0098AAB8 /* zip.c in Sources */,
 				5A23434E1211AB1F0098AAB8 /* ZipArchive.mm in Sources */,

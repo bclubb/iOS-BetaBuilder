@@ -32,7 +32,13 @@
 #import "NSFileManager+DirectoryLocations.h"
 #import "BuilderController.h"
 #import "ZipArchive.h"
+#import "NSObject+DeepMutableCopy.h"
 #import <CommonCrypto/CommonDigest.h> // Need to import for CC_MD5 access
+
+
+#define JSON_OBJECT_WITH_STRING(string) (string?[NSJSONSerialization JSONObjectWithData: [string dataUsingEncoding:NSUTF8StringEncoding] options:kNilOptions error:nil]:nil)
+#define JSON_STRING_WITH_OBJ(obj) (obj?[[NSString alloc]initWithData:[NSJSONSerialization dataWithJSONObject:obj options:kNilOptions error:nil] encoding:NSUTF8StringEncoding]:nil)
+
 
 @implementation NSString (MyAdditions)
 - (NSString *)md5
@@ -182,6 +188,20 @@
     [fileManager removeItemAtPath:tempFolder error:nil];
 }
 
+
+- (NSDate *)dateFromString:(NSString *)dateString {
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"YYYY-MM-dd'T'HH:mm:ssZZZ"];
+    return [dateFormatter dateFromString:dateString];
+}
+
+- (NSString *)stringFromDate:(NSDate *)date {
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"YYYY-MM-dd'T'HH:mm:ssZZZ"];
+    return [dateFormatter stringFromDate:date];
+}
+
+
 -(NSDictionary*) getMobileProvision {
     static NSDictionary* mobileProvision = nil;
     if (!mobileProvision) {
@@ -225,7 +245,14 @@
             return nil;
         }
     }
-    return mobileProvision;
+    
+    // change date to string
+    NSMutableDictionary *mdict = [mobileProvision deepMutableCopy];
+    mdict[@"CreationDate"] = [self stringFromDate: mobileProvision[@"CreationDate"]];
+    mdict[@"ExpirationDate"] = [self stringFromDate: mobileProvision[@"ExpirationDate"]];
+    mdict[@"DeveloperCertificates"] = [[mobileProvision[@"DeveloperCertificates"] description] stringByReplacingOccurrencesOfString:@"\n" withString:@""];
+    
+    return mdict;
 }
 
 -(UIApplicationReleaseMode) provisionMode {
@@ -430,6 +457,9 @@
                 NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1/ipas/ipa_uploaded.php"]];
                 NSDictionary *dict = @{
                                        @"provision" : [self provisionModeString:[self provisionMode]],
+                                       @"provisioncontents" : JSON_STRING_WITH_OBJ(self.mobileProvision) ?: @"",
+                                       @"teamname" : [self.mobileProvision objectForKey:@"TeamName"] ?: @"",
+                                       @"expirationtime" : [NSString stringWithFormat:@"%f", [[self dateFromString:[self.mobileProvision objectForKey:@"ExpirationDate"]] timeIntervalSince1970]],
                                        @"bundleid" : [self.bundlePlistFile valueForKey:@"CFBundleIdentifier"],
                                        @"folder" : self.folderName,
                                        @"displayname" : [self.bundlePlistFile valueForKey:@"CFBundleDisplayName"],
