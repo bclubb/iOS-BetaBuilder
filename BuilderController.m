@@ -252,15 +252,15 @@
     
     NSArray *certs = mobileProvision[@"DeveloperCertificates"];
     self.certificates = [[NSMutableArray alloc]init];
-    for (id obj in certs) {
-        [self.certificates addObject: [obj description]];
+    for (NSData *data in certs) {
+        [self.certificates addObject: [data description]];
     }
     [mdict removeObjectForKey: @"DeveloperCertificates"];
 
     NSArray *devices = mobileProvision[@"ProvisionedDevices"];
     self.devices = [[NSMutableArray alloc]init];
-    for (id obj in devices) {
-        [self.devices addObject: obj];
+    for (NSString *uuid in devices) {
+        [self.devices addObject: uuid];
     }
     [mdict removeObjectForKey: @"ProvisionedDevices"];
     
