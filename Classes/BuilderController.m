@@ -279,9 +279,15 @@
     task = [[NSTask alloc] init];
     [task setLaunchPath: @"/bin/sh"];
     
-    NSArray *arguments;
-    NSString *shellPath = [[NSBundle mainBundle]pathForResource:@"subject" ofType:@"sh"];
-    arguments = [NSArray arrayWithObjects: shellPath, certBase64String, nil];
+//    NSArray *arguments;
+//    NSString *shellPath = [[NSBundle mainBundle]pathForResource:@"subject" ofType:@"sh"];
+//    arguments = [NSArray arrayWithObjects: shellPath, certBase64String, nil];
+//    [task setArguments: arguments];
+    
+    NSArray *arguments = [NSArray arrayWithObjects:
+                          @"-c" ,
+                          [NSString stringWithFormat:@"echo %@  | base64 -D | openssl x509 -subject -inform der | head -n 1", certBase64String],
+                          nil];
     [task setArguments: arguments];
     
     NSPipe *pipe;
@@ -295,7 +301,8 @@
     NSData *data = [file readDataToEndOfFile];
     NSString *result = [[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding];
     
-    return [result stringByRemovingPercentEncoding];
+    return [NSString stringWithCString:[result cStringUsingEncoding:NSUTF8StringEncoding]
+                              encoding:NSNonLossyASCIIStringEncoding];
 }
 
 -(UIApplicationReleaseMode) provisionMode: (NSDictionary *)mobileProvision {
