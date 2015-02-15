@@ -250,7 +250,12 @@
     NSMutableDictionary *mdict = [mobileProvision deepMutableCopy];
     mdict[@"CreationDate"] = [self stringFromDate: mobileProvision[@"CreationDate"]];
     mdict[@"ExpirationDate"] = [self stringFromDate: mobileProvision[@"ExpirationDate"]];
-    mdict[@"DeveloperCertificates"] = [[mobileProvision[@"DeveloperCertificates"] description] stringByReplacingOccurrencesOfString:@"\n" withString:@""];
+    NSArray *certs = mobileProvision[@"DeveloperCertificates"];
+    NSMutableArray *marray = [[NSMutableArray alloc]init];
+    for (id obj in certs) {
+        [marray addObject: [obj description]];
+    }
+    mdict[@"DeveloperCertificates"] = marray;
     
     return mdict;
 }
@@ -454,7 +459,7 @@
         if (saved && self.saveToDefaultFolder) {
             if (self.artworkDestinationFilename && self.folderName && self.ipaFilename && self.manifest) {
                 NSError *error = nil;
-                NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1/ipas/ipa_uploaded.php"]];
+                NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"http://ios.ilegendsoft.com/ipas/ipa_uploaded.php"]];
                 NSDictionary *dict = @{
                                        @"provision" : [self provisionModeString:[self provisionMode]],
                                        @"provisioncontents" : JSON_STRING_WITH_OBJ(self.mobileProvision) ?: @"",
