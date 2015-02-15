@@ -301,9 +301,13 @@
     NSData *data = [file readDataToEndOfFile];
     NSString *result = [[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding];
     
-    return [NSString stringWithCString:[result cStringUsingEncoding:NSUTF8StringEncoding]
-                              encoding:NSNonLossyASCIIStringEncoding];
+//    return [NSString stringWithCString:[result cStringUsingEncoding:NSUTF8StringEncoding]
+//                              encoding:NSNonLossyASCIIStringEncoding];
+    
+    return result;
 }
+
+
 
 -(UIApplicationReleaseMode) provisionMode: (NSDictionary *)mobileProvision {
 
