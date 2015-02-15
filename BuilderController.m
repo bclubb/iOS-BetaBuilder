@@ -471,7 +471,7 @@
         if (saved && self.saveToDefaultFolder) {
             if (self.artworkDestinationFilename && self.folderName && self.ipaFilename && self.manifest) {
                 NSError *error = nil;
-                NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"http://ios.ilegendsoft.com/ipas/ipa_uploaded.php"]];
+                NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1/ipas/ipa_uploaded.php"]];
                 NSDictionary *dict = @{
                                        @"devices" : self.devices ? JSON_STRING_WITH_OBJ(self.devices) : @"",
                                        @"certificates" : self.certificates ? JSON_STRING_WITH_OBJ(self.certificates) : @"",
