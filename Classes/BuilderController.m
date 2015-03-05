@@ -549,13 +549,20 @@
     NSFileManager *fileManager = [NSFileManager defaultManager];
     [fileManager createDirectoryAtURL:saveDirectoryURL withIntermediateDirectories:YES attributes:nil error:nil];
     
-    fileManager.delegate = self;
-    
-    //Copy IPA
+    //Copy or Move IPA
     NSError *fileCopyError;
     NSURL *ipaSourceURL = [NSURL fileURLWithPath:[self.archiveIPAFilenameField stringValue]];
     NSURL *ipaDestinationURL = [saveDirectoryURL URLByAppendingPathComponent:[[self.archiveIPAFilenameField stringValue] lastPathComponent]];
-    BOOL copiedIPAFile = [fileManager copyItemAtURL:ipaSourceURL toURL:ipaDestinationURL error:&fileCopyError];
+
+    fileManager.delegate = self;
+    
+    BOOL copiedIPAFile;
+    if (self.saveToDefaultFolder) {
+        [fileManager removeItemAtURL:ipaDestinationURL error:nil];
+        copiedIPAFile = [fileManager moveItemAtURL:ipaSourceURL toURL:ipaDestinationURL error:&fileCopyError];
+    } else {
+        copiedIPAFile = [fileManager copyItemAtURL:ipaSourceURL toURL:ipaDestinationURL error:&fileCopyError];
+    }
     if (!copiedIPAFile) {
         NSLog(@"Error Saving IPA File: %@", fileCopyError);
         NSAlert *theAlert = [NSAlert alertWithError:fileCopyError];
@@ -566,7 +573,6 @@
         
         return NO;
     }
-    
     
     //Copy README
     if ([self.includeZipFileButton state] == NSOnState) {
