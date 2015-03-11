@@ -572,6 +572,10 @@
         }
         
         return NO;
+    } else {
+        [fileManager setAttributes:@{ NSFilePosixPermissions : @0666 }
+                      ofItemAtPath:ipaDestinationURL.path
+                             error:nil];
     }
     
     //Copy README
@@ -594,10 +598,12 @@
 
         NSURL *artworkSourceURL = [NSURL fileURLWithPath:self.appIconFilePath];
         NSURL *artworkDestinationURL = [saveDirectoryURL URLByAppendingPathComponent:self.artworkDestinationFilename];
-        
         NSError *artworkCopyError;
         BOOL copiedArtworkFile = [fileManager copyItemAtURL:artworkSourceURL toURL:artworkDestinationURL error:&artworkCopyError];
-        
+        [fileManager setAttributes:@{ NSFilePosixPermissions : @0666 }
+                      ofItemAtPath:artworkDestinationURL.path
+                             error:nil];
+
         if (copiedArtworkFile) {
             htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_ICON]" withString:[NSString stringWithFormat:@"<p><img src='%@' length='57' width='57' /></p>", self.artworkDestinationFilename]];
         } else {
@@ -615,10 +621,16 @@
     NSError *fileWriteError;
     NSURL *manifestUrl = [saveDirectoryURL URLByAppendingPathComponent:self.manifest];
     [outerManifestDictionary writeToURL:manifestUrl atomically:YES];
+    [fileManager setAttributes:@{ NSFilePosixPermissions : @0666 }
+                  ofItemAtPath:manifestUrl.path
+                         error:nil];
     NSLog(@"Manifest file saved to %@", manifestUrl);
     
     if (!self.saveToDefaultFolder) {
-        BOOL wroteHTMLFileSuccessfully = [htmlTemplateString writeToURL:[saveDirectoryURL URLByAppendingPathComponent:@"index.html"] atomically:YES encoding:NSUTF8StringEncoding error:&fileWriteError];
+        BOOL wroteHTMLFileSuccessfully = [htmlTemplateString writeToURL:[saveDirectoryURL URLByAppendingPathComponent:@"index.html"]
+                                                             atomically:YES
+                                                               encoding:NSUTF8StringEncoding
+                                                                  error:&fileWriteError];
         
         if (!wroteHTMLFileSuccessfully) {
             NSLog(@"Error Writing HTML File: %@ to %@", fileWriteError, saveDirectoryURL);
