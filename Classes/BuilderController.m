@@ -315,7 +315,11 @@
         // failure to read other than it simply not existing
         return UIApplicationReleaseUnknown;
     } else if (![mobileProvision count]) {
-        return UIApplicationReleaseUnknown;
+#if TARGET_IPHONE_SIMULATOR
+        return UIApplicationReleaseSim;
+#else
+        return UIApplicationReleaseAppStore;
+#endif
     } else if ([[mobileProvision objectForKey:@"ProvisionsAllDevices"] boolValue]) {
         // enterprise distribution contains ProvisionsAllDevices - true
         return UIApplicationReleaseEnterprise;
