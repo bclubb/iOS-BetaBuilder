@@ -125,6 +125,7 @@
 #define kWebserverArgument @"-webserver"
 #define kOutputDirectoryArgument @"-outputDirectory"
 #define kTemplateArgument @"-template"
+#define kAppStore @"-appStore"
 
 - (BOOL)processCommandLineArguments:(NSArray *)arguments {
 
@@ -134,6 +135,7 @@
     NSString *webserverAddress = nil;
     NSString *outputPath = nil;
     NSString *templateFile = nil;
+    NSString *appStore = nil;
     
     for (NSString *argument in arguments) {
         NSArray *splitArgument = [argument componentsSeparatedByString:kArgumentSeperator];
@@ -147,6 +149,8 @@
                 outputPath = [splitArgument objectAtIndex:1];
             } else if ([[splitArgument objectAtIndex:0] isEqualToString:kTemplateArgument]) {
                 templateFile = [splitArgument objectAtIndex:1];
+            } else if ([[splitArgument objectAtIndex:0] isEqualToString:kAppStore]) {
+                appStore = [splitArgument objectAtIndex:1];
             }
         }
     }
@@ -169,6 +173,12 @@
             self.builderController.templateFile = templateFile;
         }
         self.builderController.saveToDefaultFolder = YES;
+        if ([appStore.uppercaseString isEqualToString:@"YES"]) {
+            self.builderController.uploadToAppStore = YES;
+        } else {
+            self.builderController.uploadToAppStore = NO;
+        }
+        
         [self.builderController setupFromIPAFile:ipaPath];
         
         [NSApp performSelector:@selector(terminate:) withObject:nil afterDelay:0.0];

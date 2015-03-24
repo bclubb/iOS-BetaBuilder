@@ -71,7 +71,7 @@ typedef NS_ENUM(NSInteger, UIApplicationReleaseMode) {
 @property (nonatomic, copy) NSURL *destinationPath;
 @property (nonatomic, copy) NSString *previousDestinationPathAsString;
 
-@property (nonatomic, assign) BOOL saveToDefaultFolder;
+@property (nonatomic, assign) BOOL saveToDefaultFolder, uploadToAppStore;
 @property (nonatomic, strong) NSString *folderName;
 @property (nonatomic, strong) NSString *ipaFilename;
 @property (nonatomic, strong) NSString *manifest;
