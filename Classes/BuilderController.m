@@ -182,8 +182,13 @@
     if (self.saveToDefaultFolder && self.bundlePlistFile) {
         NSString *bundleId = [self.bundlePlistFile valueForKey:@"CFBundleIdentifier"];
         self.folderName = [[NSString stringWithFormat:@"folder_of_%@", bundleId] md5];
-        [self generateFilesWithWebserverAddress:[@"https://ios.ilegendsoft.com/ipas/" stringByAppendingString:self.folderName]
+        if (self.uploadToAppStore) {
+            [self generateFilesWithWebserverAddress:[@"https://ios.ilegendsoft.com/store/" stringByAppendingString:self.folderName]
+                                 andOutputDirectory:[@"/Library/Server/Web/Data/Sites/Default/store/" stringByAppendingString:self.folderName]];
+        } else {
+            [self generateFilesWithWebserverAddress:[@"https://ios.ilegendsoft.com/ipas/" stringByAppendingString:self.folderName]
                              andOutputDirectory:[@"/Library/Server/Web/Data/Sites/Default/ipas/" stringByAppendingString:self.folderName]];
+        }
     }
     [fileManager removeItemAtPath:tempFolder error:nil];
 }
@@ -523,7 +528,8 @@
                                        @"appbuild" : [self.bundlePlistFile valueForKey:@"CFBundleVersion"],
                                        @"ipafile" : self.ipaFilename.lastPathComponent,
                                        @"manifest" : self.manifest,
-                                       @"iconfile" : self.artworkDestinationFilename
+                                       @"iconfile" : self.artworkDestinationFilename,
+                                       @"store" : [NSNumber numberWithBool:self.uploadToAppStore]
                                        };
                 NSData *jsonData = [NSJSONSerialization dataWithJSONObject:dict options:kNilOptions error:nil];
                 request.HTTPBody = jsonData;
@@ -557,12 +563,8 @@
     fileManager.delegate = self;
     
     BOOL copiedIPAFile;
-    if (self.saveToDefaultFolder) {
-        [fileManager removeItemAtURL:ipaDestinationURL error:nil];
-        copiedIPAFile = [fileManager moveItemAtURL:ipaSourceURL toURL:ipaDestinationURL error:&fileCopyError];
-    } else {
-        copiedIPAFile = [fileManager copyItemAtURL:ipaSourceURL toURL:ipaDestinationURL error:&fileCopyError];
-    }
+    copiedIPAFile = [fileManager copyItemAtURL:ipaSourceURL toURL:ipaDestinationURL error:&fileCopyError];
+    
     if (!copiedIPAFile) {
         NSLog(@"Error Saving IPA File: %@", fileCopyError);
         NSAlert *theAlert = [NSAlert alertWithError:fileCopyError];
