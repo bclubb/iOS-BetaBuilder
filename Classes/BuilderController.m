@@ -320,11 +320,7 @@
         // failure to read other than it simply not existing
         return UIApplicationReleaseUnknown;
     } else if (![mobileProvision count]) {
-#if TARGET_IPHONE_SIMULATOR
-        return UIApplicationReleaseSim;
-#else
-        return UIApplicationReleaseAppStore;
-#endif
+        return UIApplicationReleaseUnknown;
     } else if ([[mobileProvision objectForKey:@"ProvisionsAllDevices"] boolValue]) {
         // enterprise distribution contains ProvisionsAllDevices - true
         return UIApplicationReleaseEnterprise;
@@ -358,14 +354,14 @@
             return @"内测版";
             break;
         case UIApplicationReleaseAppStore:
-            return @"下载版";
+            return @"商店版";
             break;
         case UIApplicationReleaseEnterprise:
             return @"企业版";
             break;
             
         default:
-            return @"unknown";
+            return @"未知";
             break;
     }
 }
