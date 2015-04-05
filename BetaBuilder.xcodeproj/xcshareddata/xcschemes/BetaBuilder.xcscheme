@@ -63,10 +63,6 @@
             argument = "-ipaPath=/Users/xcodeserver/Desktop/_ota_source/PhotoCleaner-1.0-102.ipa"
             isEnabled = "YES">
          </CommandLineArgument>
-         <CommandLineArgument
-            argument = "-appStore=YES"
-            isEnabled = "YES">
-         </CommandLineArgument>
       </CommandLineArguments>
       <AdditionalOptions>
       </AdditionalOptions>
