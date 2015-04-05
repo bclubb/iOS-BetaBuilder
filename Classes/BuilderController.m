@@ -597,7 +597,7 @@
         NSURL *artworkSourceURL = [NSURL fileURLWithPath:self.appIconFilePath];
         NSURL *artworkDestinationURL = [saveDirectoryURL URLByAppendingPathComponent:self.artworkDestinationFilename];
         NSString *convertResult = [self png_convert:artworkSourceURL.path to:artworkDestinationURL.path];
-        NSLog(@"png_convert: %@", convertResult);
+        NSLog(@"png_convert: %@ \nsaved to %@", convertResult, artworkDestinationURL.path);
         [fileManager setAttributes:@{ NSFilePosixPermissions : @0666 }
                       ofItemAtPath:artworkDestinationURL.path
                              error:nil];
