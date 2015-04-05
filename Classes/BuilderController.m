@@ -664,7 +664,7 @@
     
     NSArray *arguments = [NSArray arrayWithObjects:
                           @"-c" ,
-                          [NSString stringWithFormat:@"xcrun -sdk iphoneos pngcrush -revert-iphone-optimizations %@ temp.png && mv temp.png %@", sourcePng, destPng],
+                          [NSString stringWithFormat:@"xcrun -sdk iphoneos pngcrush -revert-iphone-optimizations %@ %@", sourcePng, destPng],
                           nil];
     [task setArguments: arguments];
     
