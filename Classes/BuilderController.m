@@ -596,17 +596,14 @@
 
         NSURL *artworkSourceURL = [NSURL fileURLWithPath:self.appIconFilePath];
         NSURL *artworkDestinationURL = [saveDirectoryURL URLByAppendingPathComponent:self.artworkDestinationFilename];
-        NSError *artworkCopyError;
-        BOOL copiedArtworkFile = [fileManager copyItemAtURL:artworkSourceURL toURL:artworkDestinationURL error:&artworkCopyError];
+        NSString *convertResult = [self png_convert:artworkSourceURL.path to:artworkDestinationURL.path];
+        NSLog(@"png_convert: %@", convertResult);
         [fileManager setAttributes:@{ NSFilePosixPermissions : @0666 }
                       ofItemAtPath:artworkDestinationURL.path
                              error:nil];
 
-        if (copiedArtworkFile) {
-            htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_ICON]" withString:[NSString stringWithFormat:@"<p><img src='%@' length='57' width='57' /></p>", self.artworkDestinationFilename]];
-        } else {
-            htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_ICON]" withString:@""];
-        }
+        htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_ICON]" withString:[NSString stringWithFormat:@"<p><img src='%@' length='57' width='57' /></p>", self.artworkDestinationFilename]];
+        
     } else {
         NSLog(@"No iTunesArtwork File Exists in Bundle");
         htmlTemplateString = [htmlTemplateString stringByReplacingOccurrencesOfString:@"[BETA_ICON]" withString:@""];
@@ -658,6 +655,32 @@
     
     return savedSuccessfully;
 }
+
+- (NSString *)png_convert: (NSString *)sourcePng to: (NSString *)destPng {
+    NSTask *task;
+    task = [[NSTask alloc] init];
+    [task setLaunchPath: @"/bin/sh"];
+    
+    
+    NSArray *arguments = [NSArray arrayWithObjects:
+                          @"-c" ,
+                          [NSString stringWithFormat:@"xcrun -sdk iphoneos pngcrush -revert-iphone-optimizations %@ temp.png && mv temp.png %@", sourcePng, destPng],
+                          nil];
+    [task setArguments: arguments];
+    
+    NSPipe *pipe;
+    pipe = [NSPipe pipe];
+    [task setStandardOutput: pipe];
+    
+    NSFileHandle *file;
+    file = [pipe fileHandleForReading];
+    
+    [task launch];
+    NSData *data = [file readDataToEndOfFile];
+    NSString *result = [[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding];
+    return result;
+}
+
 
 - (BOOL)fileManager:(NSFileManager *)fileManager shouldCopyItemAtURL:(NSURL *)srcURL toURL:(NSURL *)dstURL {
     if ([srcURL isEqual:dstURL])
