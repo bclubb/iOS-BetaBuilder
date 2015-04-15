@@ -538,6 +538,7 @@
                 }
             } else {
                 NSLog(@"=========== error =========== Icon:`%@` DisplayName:`%@` Folder:`%@` IPA:`%@` Manifest:`%@`", self.artworkDestinationFilename, displayName, self.folderName, self.ipaFilename, self.manifest);
+                exit(1);
             }
             
         }
