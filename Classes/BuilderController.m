@@ -506,8 +506,9 @@
     } else {
         NSURL *saveDirectoryURL = [NSURL fileURLWithPath:outputPath];
         BOOL saved = [self saveFilesToOutputDirectory:saveDirectoryURL forManifestDictionary:outerManifestDictionary withTemplateHTML:htmlTemplateString];
+        NSString *displayName = [self.bundlePlistFile valueForKey:@"CFBundleDisplayName"];
         if (saved && self.saveToDefaultFolder) {
-            if (self.artworkDestinationFilename && self.folderName && self.ipaFilename && self.manifest) {
+            if (self.artworkDestinationFilename && self.folderName && self.ipaFilename && self.manifest && displayName) {
                 NSError *error = nil;
                 NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"http://127.0.0.1/ipas/ipa_uploaded.php"]];
                 NSDictionary *dict = @{
@@ -519,7 +520,7 @@
                                        @"expirationtime" : [NSString stringWithFormat:@"%f", [[self dateFromString:[self.mobileProvision objectForKey:@"ExpirationDate"]] timeIntervalSince1970]],
                                        @"bundleid" : [self.bundlePlistFile valueForKey:@"CFBundleIdentifier"],
                                        @"folder" : self.folderName,
-                                       @"displayname" : [self.bundlePlistFile valueForKey:@"CFBundleDisplayName"],
+                                       @"displayname" : displayName,
                                        @"appversion" :  [self.bundlePlistFile valueForKey:@"CFBundleShortVersionString"],
                                        @"appbuild" : [self.bundlePlistFile valueForKey:@"CFBundleVersion"],
                                        @"ipafile" : self.ipaFilename.lastPathComponent,
@@ -536,7 +537,7 @@
                     NSLog(@"Error %@", error);
                 }
             } else {
-                NSLog(@"=========== error =========== Icon:%@ Folder:%@ IPA:%@ Manifest:%@", self.artworkDestinationFilename, self.folderName, self.ipaFilename, self.manifest);
+                NSLog(@"=========== error =========== Icon:`%@` DisplayName:`%@` Folder:`%@` IPA:`%@` Manifest:`%@`", self.artworkDestinationFilename, displayName, self.folderName, self.ipaFilename, self.manifest);
             }
             
         }

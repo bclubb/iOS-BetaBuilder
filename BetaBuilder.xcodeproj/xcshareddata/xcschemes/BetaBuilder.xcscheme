@@ -60,7 +60,7 @@
       </BuildableProductRunnable>
       <CommandLineArguments>
          <CommandLineArgument
-            argument = "-ipaPath=/Users/xcodeserver/Desktop/_ota_source/PhotoCleaner-1.0-102.ipa"
+            argument = "-ipaPath=/Users/xcodeserver/Desktop/_ota_source/iKeyboardForMessenger-1.0-100.ipa"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
